@@ -14,7 +14,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #1a1a1e;
+            background-color: #121214;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -37,11 +37,10 @@
             width: 100%;
             max-width: 700px;
             height: 250px;
-            background: linear-gradient(to bottom, #16213e, #0f3460);
-            border: 3px solid #39c5bb;
+            border: 3px solid #ff4060;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 25px rgba(255, 64, 96, 0.3);
         }
         canvas {
             display: block;
@@ -54,7 +53,7 @@
             font-size: 18px;
             font-weight: bold;
             color: #fff;
-            background: linear-gradient(135deg, #39c5bb, #0f3460);
+            background: linear-gradient(135deg, #ff4060, #0f3460);
             border: 2px solid #fff;
             border-radius: 30px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
@@ -63,7 +62,7 @@
         }
         .mobile-btn:active {
             transform: scale(0.95);
-            background: #ff4060;
+            background: #e03050;
         }
         #instructions {
             margin-top: 10px;
@@ -97,15 +96,16 @@
     let gameSpeed = 5;
     let frameCount = 0;
 
-    // --- HE THONG NHAC 8-BIT: "LOOPING THE ROOMS" ---
+    // --- HE THONG NHAC 8-BIT: "MRBEAST REMIX 2023 / PHONK BEAT" ---
     let audioCtx = null;
     let musicInterval = null;
 
-    const loopingNotes = [
-        311.13, 349.23, 392.00, 466.16, 415.30, 392.00, 349.23, 311.13,
-        261.63, 311.13, 349.23, 392.00, 349.23, 311.13, 293.66, 261.63,
-        233.08, 261.63, 311.13, 392.00, 349.23, 311.13, 261.63, 233.08,
-        207.65, 261.63, 311.13, 415.30, 392.00, 349.23, 311.13, 261.63
+    // Giai điệu MrBeast Phonk / Bass Remix
+    const mrBeastRemixNotes = [
+        146.83, 146.83, 293.66, 146.83, 261.63, 146.83, 220.00, 207.65,
+        146.83, 146.83, 329.63, 146.83, 293.66, 261.63, 220.00, 196.00,
+        146.83, 146.83, 392.00, 349.23, 293.66, 146.83, 261.63, 220.00,
+        130.81, 146.83, 261.63, 293.66, 349.23, 329.63, 293.66, 261.63
     ];
     let noteIdx = 0;
 
@@ -115,15 +115,15 @@
         }
     }
 
-    function playNote(freq, duration = 0.18) {
+    function playNote(freq, duration = 0.14) {
         if (!audioCtx || isGameOver) return;
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square';
+            osc.type = 'sawtooth'; // Giả lập tiếng Phonk Synth
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
 
             osc.connect(gain);
@@ -143,10 +143,10 @@
         noteIdx = 0;
         musicInterval = setInterval(() => {
             if (isGameRunning && !isGameOver) {
-                playNote(loopingNotes[noteIdx], 0.18);
-                noteIdx = (noteIdx + 1) % loopingNotes.length;
+                playNote(mrBeastRemixNotes[noteIdx], 0.15);
+                noteIdx = (noteIdx + 1) % mrBeastRemixNotes.length;
             }
-        }, 170);
+        }, 135); // Nhịp Remix 2023 nhanh dồn dập
     }
 
     function stopMusic() {
@@ -156,7 +156,7 @@
         }
     }
 
-    // Cấu hình Miku (Player)
+    // Cấu hình Miku
     const miku = {
         x: 180,
         baseX: 180,
@@ -215,6 +215,88 @@
     }
 
     let obstacles = [];
+
+    // HÌNH NỀN: Backrooms (< 500 điểm) & Nhà Trắng (>= 500 điểm)
+    function drawBackground() {
+        if (score < 500) {
+            // --- HÌNH NỀN THE BACKROOMS ---
+            // Tường vàng ẩm mốc
+            ctx.fillStyle = "#c2b280";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            // Các đường sọc dán tường mờ Backrooms
+            ctx.fillStyle = "#a89868";
+            for (let i = 0; i < canvas.width; i += 40) {
+                ctx.fillRect((i - (frameCount * (gameSpeed * 0.2)) % 40), 0, 18, canvas.height - 30);
+            }
+
+            // Đèn huỳnh quang u tối
+            ctx.fillStyle = "rgba(255, 255, 200, 0.25)";
+            ctx.fillRect(100, 10, 120, 12);
+            ctx.fillRect(450, 10, 120, 12);
+
+            // Đất: Thảm Backrooms bẩn
+            ctx.fillStyle = "#5c5238";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = "#3d3623";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
+
+        } else {
+            // --- HÌNH NỀN NHÀ TRẮNG MỸ (WHITE HOUSE) ---
+            // Bầu trời xanh nhạt
+            ctx.fillStyle = "#70b5f5";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            // Mây trắng trôi
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            let cloudX = (frameCount * 0.8) % (canvas.width + 100);
+            ctx.beginPath();
+            ctx.arc(canvas.width - cloudX, 40, 20, 0, Math.PI * 2);
+            ctx.arc(canvas.width - cloudX + 25, 35, 25, 0, Math.PI * 2);
+            ctx.arc(canvas.width - cloudX + 50, 40, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tòa nhà Nhà Trắng (White House)
+            ctx.fillStyle = "#f0f4f8";
+            ctx.fillRect(150, 60, 400, 160); // Thân chính
+            ctx.fillStyle = "#e1e8ed";
+            ctx.fillRect(250, 40, 200, 180); // Khối giữa cao
+
+            // Cột trụ Nhà Trắng
+            ctx.fillStyle = "#ffffff";
+            for (let c = 270; c <= 410; c += 28) {
+                ctx.fillRect(c, 70, 14, 150);
+            }
+
+            // Mái tam giác
+            ctx.fillStyle = "#d0d7de";
+            ctx.beginPath();
+            ctx.moveTo(240, 40);
+            ctx.lineTo(350, 10);
+            ctx.lineTo(460, 40);
+            ctx.fill();
+
+            // Cờ Mỹ trên nóc
+            ctx.fillStyle = "#b22234";
+            ctx.fillRect(348, -5, 20, 12);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(348, -5, 20, 2);
+            ctx.fillRect(348, 1, 20, 2);
+            ctx.fillRect(348, 7, 20, 2);
+            ctx.fillStyle = "#3c3b6e";
+            ctx.fillRect(348, -5, 8, 6);
+
+            // Cột cờ
+            ctx.fillStyle = "#888";
+            ctx.fillRect(346, -5, 2, 15);
+
+            // Đất: Thảm cỏ xanh trước Nhà Trắng
+            ctx.fillStyle = "#2e8b57";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = "#39c5bb";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
+        }
+    }
 
     // Vẽ Miku
     function drawMiku() {
@@ -293,13 +375,6 @@
         }
     }
 
-    function drawGround() {
-        ctx.fillStyle = "#1f3440";
-        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-        ctx.fillStyle = "#39c5bb";
-        ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
-    }
-
     function handleAction() {
         if (!isGameRunning) {
             if (isGameOver) resetGame();
@@ -341,7 +416,7 @@
         mrBeast.isJumping = false;
         frameCount = 0;
         actionBtn.innerText = "NHẢY! 🚀";
-        actionBtn.style.background = "linear-gradient(135deg, #39c5bb, #0f3460)";
+        actionBtn.style.background = "linear-gradient(135deg, #ff4060, #0f3460)";
     }
 
     function triggerGameOver() {
@@ -355,7 +430,8 @@
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        drawGround();
+        // Vẽ bối cảnh động Backrooms / Nhà Trắng
+        drawBackground();
 
         if (isGameRunning && !isGameOver) {
             frameCount++;
@@ -414,17 +490,22 @@
             drawMiku();
 
             ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.fillText(`Điểm: ${score}`, 15, 30);
             ctx.fillText(`Tốc độ: ${gameSpeed.toFixed(1)}x`, 15, 50);
             ctx.fillText(`Kỷ lục: ${highScore}`, canvas.width - 120, 30);
+
+            // Thông báo khu vực
+            ctx.fillStyle = score >= 500 ? '#ffea00' : '#e4e56c';
+            ctx.font = '13px Arial';
+            ctx.fillText(score >= 500 ? '📍 Địa điểm: Trước Nhà Trắng (USA)' : '📍 Địa điểm: The Backrooms', 15, 70);
 
         } else if (!isGameRunning && !isGameOver) {
             drawMrBeast();
             drawMiku();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#39c5bb';
+            ctx.fillStyle = '#ff4060';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
             ctx.fillText('BẤM NÚT HOẶC SPACE ĐỂ BẮT ĐẦU', canvas.width / 2, canvas.height / 2);
@@ -437,7 +518,6 @@
             ctx.fillStyle = '#ff4060';
             ctx.font = 'bold 26px Arial';
             ctx.textAlign = 'center';
-            // Dòng thông báo khi MrBeast bắt được
             ctx.fillText('BẠN ĐÃ MẤT 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
             ctx.fillStyle = '#fff';
             ctx.font = '16px Arial';
