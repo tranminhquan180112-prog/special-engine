@@ -87,7 +87,7 @@
     const ctx = canvas.getContext('2d');
     const actionBtn = document.getElementById('actionBtn');
 
-    // Biến trạng thái Game
+    // Trạng thái Game
     let isGameRunning = false;
     let isGameOver = false;
     let isGameWon = false;
@@ -97,7 +97,7 @@
     let gameSpeed = 5;
     let frameCount = 0;
 
-    // --- HỆ THỐNG NHẠC 8-BIT: "MRBEAST REMIX 2023 / PHONK BEAT" ---
+    // --- HỆ THỐNG ÂM THANH (AUDIO API) ---
     let audioCtx = null;
     let musicInterval = null;
 
@@ -134,6 +134,29 @@
         } catch (e) {}
     }
 
+    // Tiếng Teto kêu khi nhảy
+    function playTetoJumpSound() {
+        if (!audioCtx) return;
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.12);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.12);
+        } catch (e) {}
+    }
+
     function startMusic() {
         initAudio();
         if (audioCtx.state === 'suspended') {
@@ -156,7 +179,7 @@
         }
     }
 
-    // Cấu hình Miku
+    // Nhân vật Miku
     const miku = {
         x: 180,
         baseX: 180,
@@ -170,15 +193,15 @@
         isJumping: false
     };
 
-    // Cấu hình MrBeast
+    // Nhân vật MrBeast
     const mrBeast = {
         x: 20,
         y: 168,
         width: 42,
         height: 52,
         velocityY: 0,
-        speed: 1.0,      // Ban đầu di chuyển chậm
-        maxSpeed: 5.0,   // Tốc độ tối đa bằng tốc độ ban đầu của Miku
+        speed: 1.0,
+        maxSpeed: 5.0,
         isJumping: false
     };
 
@@ -218,9 +241,13 @@
 
     let obstacles = [];
 
-    // HÌNH NỀN: Backrooms (< 500 điểm) & Nhà Trắng (>= 500 điểm)
+    // --- HỆ THỐNG PHÔNG NỀN THEO CHÍNH XÁC CÁC MỐC ĐIỂM ---
+    let locationText = "";
+
     function drawBackground() {
         if (score < 500) {
+            // < 500đ: Backrooms
+            locationText = "📍 Địa điểm: The Backrooms";
             ctx.fillStyle = "#c2b280";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -238,7 +265,86 @@
             ctx.fillStyle = "#3d3623";
             ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
 
-        } else {
+        } else if (score >= 500 && score < 1500) {
+            // 500 - 1499đ: Ngoài đường ở nước Mỹ
+            locationText = "📍 Địa điểm: Đường phố Nước Mỹ";
+            ctx.fillStyle = "#2c3e50";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            ctx.fillStyle = "#1a252f";
+            ctx.fillRect(50, 60, 90, 160);
+            ctx.fillRect(180, 40, 110, 180);
+            ctx.fillRect(320, 80, 100, 140);
+            ctx.fillRect(460, 30, 120, 190);
+
+            ctx.fillStyle = "#f1c40f";
+            for (let bx = 60; bx < 560; bx += 70) {
+                for (let by = 70; by < 180; by += 25) {
+                    if ((bx + by) % 3 === 0) ctx.fillRect(bx, by, 10, 12);
+                }
+            }
+
+            ctx.fillStyle = "#34495e";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+            ctx.fillStyle = "#f1c40f";
+            for (let rx = 0; rx < canvas.width; rx += 60) {
+                ctx.fillRect((rx - (frameCount * gameSpeed) % 60), canvas.height - 16, 30, 4);
+            }
+
+        } else if (score >= 1500 && score < 2500) {
+            // 1500 - 2499đ: Shibuya
+            locationText = "📍 Địa điểm: Shibuya (Nhật Bản)";
+            ctx.fillStyle = "#0d0221";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            ctx.fillStyle = "#190933";
+            ctx.fillRect(80, 30, 140, 190);
+            ctx.fillRect(260, 20, 180, 200);
+            ctx.fillRect(480, 40, 130, 180);
+
+            ctx.fillStyle = "#ff007f";
+            ctx.fillRect(100, 50, 100, 50);
+            ctx.fillStyle = "#00f0ff";
+            ctx.fillRect(280, 40, 140, 70);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px Arial";
+            ctx.fillText("SHIBUYA 109", 295, 80);
+
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = "#ffffff";
+            for (let sx = 0; sx < canvas.width; sx += 30) {
+                ctx.fillRect((sx - (frameCount * gameSpeed) % 30), canvas.height - 28, 12, 26);
+            }
+
+        } else if (score >= 2500 && score < 3400) {
+            // 2500 - 3399đ: Tokyo
+            locationText = "📍 Địa điểm: Tokyo";
+            ctx.fillStyle = "#050b14";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            // Tháp Tokyo
+            ctx.fillStyle = "#ff3300";
+            ctx.beginPath();
+            ctx.moveTo(350, 20);
+            ctx.lineTo(310, 220);
+            ctx.lineTo(390, 220);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(338, 70, 24, 15);
+            ctx.fillRect(330, 130, 40, 20);
+
+            ctx.fillStyle = "#1a1a24";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = "#ffcc00";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 2);
+
+        } else if (score >= 3400 && score < 3500) {
+            // 3400 - 3499đ: Nhà Trắng của Mỹ
+            locationText = "📍 Địa điểm: Nhà Trắng của Mỹ";
             ctx.fillStyle = "#70b5f5";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -276,12 +382,31 @@
             ctx.fillStyle = "#3c3b6e";
             ctx.fillRect(348, -5, 8, 6);
 
-            ctx.fillStyle = "#888";
-            ctx.fillRect(346, -5, 2, 15);
-
             ctx.fillStyle = "#2e8b57";
             ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-            ctx.fillStyle = "#39c5bb";
+
+        } else {
+            // ≥ 3500đ: Hậu trường của MrBeast
+            locationText = "🎬 Địa điểm: Hậu trường của MrBeast";
+            ctx.fillStyle = "#111116";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
+
+            ctx.fillStyle = "#00ff40";
+            ctx.fillRect(120, 30, 460, 160);
+
+            ctx.fillStyle = "#ffea00";
+            ctx.beginPath();
+            ctx.arc(80, 30, 20, 0, Math.PI * 2);
+            ctx.arc(620, 30, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#00d4ff";
+            ctx.font = "bold 24px Arial";
+            ctx.fillText("MRBEAST STUDIO", 235, 110);
+
+            ctx.fillStyle = "#22222a";
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = "#ff0055";
             ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
         }
     }
@@ -358,7 +483,6 @@
             mrBeast.isJumping = false;
         }
 
-        // Tăng tốc độ MrBeast từ từ cho tới khi bằng tốc độ Miku
         if (mrBeast.speed < mrBeast.maxSpeed) {
             mrBeast.speed += 0.01;
         }
@@ -368,16 +492,29 @@
         }
     }
 
-    function handleAction() {
-        if (!isGameRunning) {
-            if (isGameOver || isGameWon) resetGame();
+    function handleAction(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        if (!isGameRunning || isGameOver || isGameWon) {
+            resetGame();
             isGameRunning = true;
             actionBtn.innerText = "NHẢY! 🚀";
             startMusic();
+            return;
         }
-        if (!miku.isJumping && !isGameWon) {
+
+        if (!miku.isJumping) {
             miku.velocityY = miku.jumpPower;
             miku.isJumping = true;
+            playTetoJumpSound();
         }
     }
 
@@ -388,11 +525,9 @@
         }
     });
 
+    actionBtn.addEventListener('touchstart', handleAction, { passive: false });
     actionBtn.addEventListener('click', handleAction);
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleAction();
-    });
+    canvas.addEventListener('touchstart', handleAction, { passive: false });
 
     function resetGame() {
         isGameOver = false;
@@ -424,7 +559,7 @@
 
     function triggerGameWin() {
         isGameWon = true;
-        score = 6736;
+        score = 3600;
         stopMusic();
         actionBtn.innerText = "🏆 CHƠI LẠI TRÒ CHƠI";
         actionBtn.style.background = "linear-gradient(135deg, #39c5bb, #2e8b57)";
@@ -440,8 +575,7 @@
             frameCount++;
             score = Math.floor(frameCount / 4);
 
-            // Kiểm tra thắng game tại 6736 điểm
-            if (score >= 6736) {
+            if (score >= 3600) {
                 triggerGameWin();
             }
 
@@ -503,9 +637,9 @@
             ctx.fillText(`Tốc độ: ${gameSpeed.toFixed(1)}x`, 15, 50);
             ctx.fillText(`Kỷ lục: ${highScore}`, canvas.width - 120, 30);
 
-            ctx.fillStyle = score >= 500 ? '#ffea00' : '#e4e56c';
+            ctx.fillStyle = '#ffea00';
             ctx.font = '13px Arial';
-            ctx.fillText(score >= 500 ? '📍 Địa điểm: Trước Nhà Trắng (USA)' : '📍 Địa điểm: The Backrooms', 15, 70);
+            ctx.fillText(locationText, 15, 70);
 
         } else if (!isGameRunning && !isGameOver && !isGameWon) {
             drawMrBeast();
