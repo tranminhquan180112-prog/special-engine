@@ -131,7 +131,7 @@
         }
     }
 
-    // Nốt nhạc 32-bit mượt mà hơn (Phối kết hợp đa sóng Synth)
+    // Nốt nhạc 32-bit mượt mà (Phối đa dạng sóng Synth)
     function play32BitNote(freq, duration = 0.14, type = 'triangle', volume = 0.08) {
         if (!audioCtx || isGameOver || isGameWon) return;
         try {
@@ -151,7 +151,7 @@
         } catch (e) {}
     }
 
-    // Tiếng nhảy 32-bit Synth Arpeggio
+    // Sound effect nhảy 32-bit Synth Arpeggio
     function play32BitJumpSound() {
         if (!audioCtx) return;
         try {
@@ -184,11 +184,11 @@
         noteIdx = 0;
         musicInterval = setInterval(() => {
             if (isGameRunning && !isGameOver && !isGameWon) {
-                // Lead Melody (32-bit Sóng tam giác mượt)
+                // Lead Melody (32-bit Sóng tam giác)
                 play32BitNote(melody32Bit[noteIdx], 0.13, 'triangle', 0.08);
-                // Harmony (Sóng vuông dịu)
+                // Harmony (Sóng vuông)
                 play32BitNote(harmony32Bit[noteIdx], 0.11, 'square', 0.03);
-                // Bass Line (Sóng răng cưa trầm)
+                // Bass Line (Sóng răng cưa)
                 play32BitNote(bass32Bit[noteIdx], 0.14, 'sawtooth', 0.09);
 
                 noteIdx = (noteIdx + 1) % melody32Bit.length;
@@ -203,7 +203,7 @@
         }
     }
 
-    // Nhân vật Miku Xinh Đẹp (Thiết kế chi tiết chuẩn Anime như Teto)
+    // Nhân vật Hatsune Miku (Thiết kế chi tiết chuẩn Anime)
     const miku = {
         x: 180,
         baseX: 180,
@@ -221,19 +221,19 @@
             const y = this.y;
             const hairWave = Math.sin(frameCount * 0.3) * 3;
 
-            // --- 1. TÓC DÀI HAI BÊN ĐẶC TRƯNG (Twin Tails) ---
+            // --- 1. TÓC DÀI HAI BÊN (Twin Tails) ---
             ctx.fillStyle = '#39c5bb';
-            // Tóc bên trái
+            // Tóc trái
             ctx.fillRect(x - 8, y + 6 + hairWave, 8, 14);
             ctx.fillRect(x - 11, y + 18 + hairWave, 9, 16);
             ctx.fillRect(x - 8, y + 32 + hairWave, 6, 12);
 
-            // Tóc bên phải
+            // Tóc phải
             ctx.fillRect(x + 36, y + 6 - hairWave, 8, 14);
             ctx.fillRect(x + 38, y + 18 - hairWave, 9, 16);
             ctx.fillRect(x + 38, y + 32 - hairWave, 6, 12);
 
-            // Cặp cài tóc / Nơ đỏ cài tóc
+            // Cài tóc đỏ
             ctx.fillStyle = '#ff2a55';
             ctx.fillRect(x - 2, y + 4, 6, 4);
             ctx.fillRect(x + 32, y + 4, 6, 4);
@@ -247,11 +247,11 @@
             ctx.fillStyle = '#d0d4dc';
             ctx.fillRect(x + 8, y + 18, 20, 13);
 
-            // Ca-vát xanh ngọc đặc trưng
+            // Cà vạt xanh ngọc
             ctx.fillStyle = '#00a896';
             ctx.fillRect(x + 17, y + 20, 2, 11);
 
-            // Tai nghe màu đen/đỏ
+            // Tai nghe
             ctx.fillStyle = '#111';
             ctx.fillRect(x + 2, y + 8, 4, 8);
             ctx.fillRect(x + 30, y + 8, 4, 8);
@@ -260,7 +260,7 @@
             ctx.fillRect(x + 31, y + 10, 2, 4);
 
             // --- 3. ĐẦU & KHUÔN MẶT (Face & Hair) ---
-            // Mặt (Làn da)
+            // Làn da
             ctx.fillStyle = '#ffe0cb';
             ctx.fillRect(x + 6, y + 2, 24, 18);
 
@@ -276,13 +276,12 @@
             ctx.fillRect(x + 10, y + 8, 4, 6);
             ctx.fillRect(x + 22, y + 8, 4, 6);
 
-            // Điểm sáng trong mắt
+            // Điểm sáng mắt
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(x + 11, y + 9, 2, 2);
             ctx.fillRect(x + 23, y + 9, 2, 2);
 
             // --- 4. CHÂN & TẤT ĐÙI (Legs & Boots) ---
-            // Đùi
             ctx.fillStyle = '#ffe0cb';
             ctx.fillRect(x + 10, y + 38, 6, 4);
             ctx.fillRect(x + 20, y + 38, 6, 4);
@@ -311,7 +310,7 @@
         isJumping: false
     };
 
-    // Vật cản Teto Xinh Đẹp (Ngoại hình phong cách Anime/Miku)
+    // Vật cản Kasane Teto (Thiết kế chi tiết chuẩn Anime)
     class TetoObstacle {
         constructor() {
             this.x = canvas.width;
@@ -394,7 +393,7 @@
 
     let obstacles = [];
 
-    // --- HỆ THỐNG PHÔNG NỀN VÀ GIỚI HẠN TỐC ĐỘ THEO KHU VỰC ---
+    // --- PHÔNG NỀN VÀ GIỚI HẠN TỐC ĐỘ THEO KHU VỰC ---
     let locationText = "";
     let currentMaxSpeed = 7.0;
 
@@ -815,3 +814,4 @@
 </script>
 </body>
 </html>
+
