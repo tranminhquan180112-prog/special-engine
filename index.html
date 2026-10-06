@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hatsune Miku Jump!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        body {
+            background-color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #39c5bb;
+            text-shadow: 0 0 10px rgba(57, 197, 187, 0.5);
+            font-size: 24px;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 250px;
+            background: linear-gradient(to bottom, #16213e, #0f3460);
+            border: 3px solid #39c5bb;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #instructions {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #e94560;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Miku vs Teto Runner</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="700" height="250"></canvas>
+    </div>
+    <div id="instructions">Chạm vào màn hình hoặc ấn Space/Mũi tên lên để Nhảy!</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Biến trạng thái Game
+        let isGameRunning = false;
+        let isGameOver = false;
+        let score = 0;
+        let highScore = 0;
+        let gameSpeed = 6;
+        let frameCount = 0;
+
+        // Cấu hình Miku (Player)
+        const miku = {
+            x: 50,
+            y: 170,
+            width: 40,
+            height: 50,
+            velocityY: 0,
+            gravity: 0.7,
+            jumpPower: -12,
+            isJumping: false,
+            color: '#39c5bb', // Màu xanh đặc trưng của Miku
+            hairColor: '#00f3ff'
+        };
+
+        // Danh sách chướng ngại vật Kasane Teto
+        let obstacles = [];
+
+        // Lớp chướng ngại vật Teto
+        class TetoObstacle {
+            constructor() {
+                this.x = canvas.width;
+                this.width = 35;
+                this.height = 45;
+                this.y = canvas.height - 30 - this.height; // Đặt sát mặt đất
+                this.color = '#e94560'; // Màu đỏ tía đặc trưng của Teto
+            }
+
+            update() {
+                this.x -= gameSpeed;
+            }
+
+            draw() {
+                // Vẽ thân Teto
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y + 15, this.width, this.height - 15);
+
+                // Vẽ đầu Teto
+                ctx.fillStyle = '#ffdfc4';
+                ctx.fillRect(this.x + 5, this.y, 25, 20);
+
+                // Vẽ tóc Twin-drill đỏ tía của Teto
+                ctx.fillStyle = '#d63447';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y + 10, 8, 0, Math.PI * 2); // Bím tóc trái
+                ctx.arc(this.x + this.width, this.y + 10, 8, 0, Math.PI * 2); // Bím tóc phải
+                ctx.fill();
+
+                // Mắt Teto
+                ctx.fillStyle = '#000';
+                ctx.fillRect(this.x + 10, this.y + 7, 4, 4);
+                ctx.fillRect(this.x + 20, this.y + 7, 4, 4);
+            }
+        }
+
+        // Vẽ Miku
+        function drawMiku() {
+            // Vẽ thân/váy Miku
+            ctx.fillStyle = '#222';
+            ctx.fillRect(miku.x + 10, miku.y + 20, 20, 20);
+            
+            // Vẽ đầu Miku
+            ctx.fillStyle = '#ffdfc4';
+            ctx.fillRect(miku.x + 8, miku.y + 2, 24, 20);
+
+            // Vẽ tóc Twin-tail màu Cyan của Miku
+            ctx.fillStyle = miku.color;
+            // Tóc trái dài
+            ctx.fillRect(miku.x - 2, miku.y + 5, 10, 35);
+            // Tóc phải dài
+            ctx.fillRect(miku.x + 32, miku.y + 5, 10, 35);
+
+            // Mắt Miku
+            ctx.fillStyle = miku.color;
+            ctx.fillRect(miku.x + 13, miku.y + 8, 4, 6);
+            ctx.fillRect(miku.x + 23, miku.y + 8, 4, 6);
+
+            // Cà vạt xanh
+            ctx.fillStyle = miku.color;
+            ctx.fillRect(miku.x + 18, miku.y + 22, 4, 12);
+        }
+
+        // Vẽ Mặt đất
+        function drawGround() {
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+            ctx.fillStyle = '#39c5bb';
+            ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
+        }
+
+        // Nhảy
+        function jump() {
+            if (!isGameRunning) {
+                if (isGameOver) resetGame();
+                isGameRunning = true;
+            }
+            if (!miku.isJumping) {
+                miku.velocityY = miku.jumpPower;
+                miku.isJumping = true;
+            }
+        }
+
+        // Xử lý sự kiện điều khiển
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
+        canvas.addEventListener('mousedown', jump);
+
+        // Reset Game
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            gameSpeed = 6;
+            obstacles = [];
+            miku.y = 170;
+            miku.velocityY = 0;
+            miku.isJumping = false;
+        }
+
+        // Game Loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGround();
+
+            if (isGameRunning && !isGameOver) {
+                frameCount++;
+                score = Math.floor(frameCount / 5);
+
+                // Tăng tốc độ game dần dần
+                if (frameCount % 500 === 0) gameSpeed += 0.5;
+
+                // Vật lý Miku
+                miku.velocityY += miku.gravity;
+                miku.y += miku.velocityY;
+
+                const groundY = canvas.height - 30 - miku.height;
+                if (miku.y >= groundY) {
+                    miku.y = groundY;
+                    miku.velocityY = 0;
+                    miku.isJumping = false;
+                }
+
+                // Sinh ra Teto
+                if (frameCount % Math.floor(1000 / (gameSpeed * 10) + Math.random() * 40) === 0) {
+                    obstacles.push(new TetoObstacle());
+                }
+
+                // Cập nhật và vẽ các Teto
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    obstacles[i].update();
+                    obstacles[i].draw();
+
+                    // Kiếm tra Va chạm (AABB Collision)
+                    if (
+                        miku.x < obstacles[i].x + obstacles[i].width &&
+                        miku.x + miku.width > obstacles[i].x &&
+                        miku.y < obstacles[i].y + obstacles[i].height &&
+                        miku.y + miku.height > obstacles[i].y
+                    ) {
+                        isGameOver = true;
+                        if (score > highScore) highScore = score;
+                    }
+
+                    // Xóa Teto đã đi qua màn hình
+                    if (obstacles[i].x + obstacles[i].width < 0) {
+                        obstacles.splice(i, 1);
+                    }
+                }
+            }
+
+            drawMiku();
+
+            // Hiển thị Điểm
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText(`Điểm: ${score}`, 15, 30);
+            ctx.fillText(`Kỷ lục: ${highScore}`, canvas.width - 120, 30);
+
+            // Màn hình chờ / Thua
+            if (!isGameRunning && !isGameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#39c5bb';
+                ctx.font = 'bold 22px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('CHẠM HOẶC BẤM SPACE ĐỂ BẮT ĐẦU', canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = 'left';
+            } else if (isGameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#e94560';
+                ctx.font = 'bold 28px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 10);
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Arial';
+                ctx.fillText('Chạm hoặc bấm Space để chơi lại', canvas.width / 2, canvas.height / 2 + 25);
+                ctx.textAlign = 'left';
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
