@@ -241,13 +241,16 @@
 
     let obstacles = [];
 
-    // --- HỆ THỐNG PHÔNG NỀN THEO CHÍNH XÁC CÁC MỐC ĐIỂM ---
+    // --- HỆ THỐNG PHÔNG NỀN VÀ GIỚI HẠN TỐC ĐỘ THEO KHU VỰC ---
     let locationText = "";
+    let currentMaxSpeed = 7.0;
 
     function drawBackground() {
         if (score < 500) {
-            // < 500đ: Backrooms
-            locationText = "📍 Địa điểm: The Backrooms";
+            // < 500đ: Backrooms - Giới hạn tốc độ: 7.0
+            locationText = "📍 Địa điểm: The Backrooms (Tối đa: 7.0x)";
+            currentMaxSpeed = 7.0;
+
             ctx.fillStyle = "#c2b280";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -266,8 +269,10 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
 
         } else if (score >= 500 && score < 1500) {
-            // 500 - 1499đ: Ngoài đường ở nước Mỹ
-            locationText = "📍 Địa điểm: Đường phố Nước Mỹ";
+            // 500 - 1499đ: Đường phố Mỹ - Giới hạn tốc độ: 8.5
+            locationText = "📍 Địa điểm: Đường phố Nước Mỹ (Tối đa: 8.5x)";
+            currentMaxSpeed = 8.5;
+
             ctx.fillStyle = "#2c3e50";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -293,8 +298,10 @@
             }
 
         } else if (score >= 1500 && score < 2500) {
-            // 1500 - 2499đ: Shibuya
-            locationText = "📍 Địa điểm: Shibuya (Nhật Bản)";
+            // 1500 - 2499đ: Shibuya - Giới hạn tốc độ: 10.0
+            locationText = "📍 Địa điểm: Shibuya (Tối đa: 10.0x)";
+            currentMaxSpeed = 10.0;
+
             ctx.fillStyle = "#0d0221";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -320,12 +327,13 @@
             }
 
         } else if (score >= 2500 && score < 3400) {
-            // 2500 - 3399đ: Tokyo
-            locationText = "📍 Địa điểm: Tokyo";
+            // 2500 - 3399đ: Tokyo - Giới hạn tốc độ: 12.5
+            locationText = "📍 Địa điểm: Tokyo (Tối đa: 12.5x)";
+            currentMaxSpeed = 12.5;
+
             ctx.fillStyle = "#050b14";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
-            // Tháp Tokyo
             ctx.fillStyle = "#ff3300";
             ctx.beginPath();
             ctx.moveTo(350, 20);
@@ -343,8 +351,10 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 2);
 
         } else if (score >= 3400 && score < 3500) {
-            // 3400 - 3499đ: Nhà Trắng của Mỹ
-            locationText = "📍 Địa điểm: Nhà Trắng của Mỹ";
+            // 3400 - 3499đ: Nhà Trắng - Giới hạn tốc độ: 13.5
+            locationText = "📍 Địa điểm: Nhà Trắng (Tối đa: 13.5x)";
+            currentMaxSpeed = 13.5;
+
             ctx.fillStyle = "#70b5f5";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -386,8 +396,10 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
 
         } else {
-            // ≥ 3500đ: Hậu trường của MrBeast
-            locationText = "🎬 Địa điểm: Hậu trường của MrBeast";
+            // ≥ 3500đ: Hậu trường MrBeast - Giới hạn tốc độ: 15.0
+            locationText = "🎬 Địa điểm: Hậu trường MrBeast (Tối đa: 15.0x)";
+            currentMaxSpeed = 15.0;
+
             ctx.fillStyle = "#111116";
             ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
 
@@ -579,7 +591,9 @@
                 triggerGameWin();
             }
 
-            gameSpeed = baseSpeed + (frameCount / 250);
+            // Tính toán tốc độ dựa trên thời gian và ÁP DỤNG CƠ CHẾ GIỚI HẠN TỐC ĐỘ (Speed Cap)
+            let calculatedSpeed = baseSpeed + (frameCount / 250);
+            gameSpeed = Math.min(calculatedSpeed, currentMaxSpeed);
 
             miku.velocityY += miku.gravity;
             miku.y += miku.velocityY;
