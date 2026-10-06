@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nếu để tôi bắt đc bạn sẽ mất 5tr đô</title>
+    <title>Nếu để tôi bắt đc bạn sẽ mất 5tr đô - Vampire Style</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #121214;
+            background-color: #0b0204;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -26,21 +26,22 @@
         }
         h1 {
             margin-bottom: 10px;
-            color: #ff4060;
-            text-shadow: 0 0 10px rgba(255, 64, 96, 0.5);
+            color: #ff003c;
+            text-shadow: 0 0 12px rgba(255, 0, 60, 0.8);
             font-size: 20px;
             text-align: center;
             padding: 0 10px;
+            letter-spacing: 1px;
         }
         #game-container {
             position: relative;
             width: 100%;
             max-width: 700px;
             height: 250px;
-            border: 3px solid #ff4060;
+            border: 3px solid #ff003c;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 25px rgba(255, 64, 96, 0.3);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.4);
         }
         canvas {
             display: block;
@@ -53,21 +54,21 @@
             font-size: 18px;
             font-weight: bold;
             color: #fff;
-            background: linear-gradient(135deg, #ff4060, #0f3460);
+            background: linear-gradient(135deg, #ff003c, #4a0011);
             border: 2px solid #fff;
             border-radius: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px rgba(255, 0, 60, 0.4);
             cursor: pointer;
             outline: none;
         }
         .mobile-btn:active {
             transform: scale(0.95);
-            background: #e03050;
+            background: #b3002a;
         }
         #instructions {
             margin-top: 10px;
             font-size: 13px;
-            color: #e4e56c;
+            color: #ffcccc;
             text-align: center;
         }
     </style>
@@ -86,6 +87,16 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const actionBtn = document.getElementById('actionBtn');
+
+    // Tạo pattern Halftone / Dot Filter (Chấm bi ô vuông mảng tối chuẩn MV Vampire)
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = 4;
+    patternCanvas.height = 4;
+    const pCtx = patternCanvas.getContext('2d');
+    pCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    pCtx.fillRect(0, 0, 2, 2);
+    pCtx.fillRect(2, 2, 2, 2);
+    const halftonePattern = ctx.createPattern(patternCanvas, 'repeat');
 
     // Trạng thái Game
     let isGameRunning = false;
@@ -197,40 +208,12 @@
         }
     }
 
-    // --- HÀM TRỢ GIÚP VẼ MẮT ANIME LONG LANH ---
-    function drawAnimeEye(cx, cy, mainColor, darkColor) {
-        // Lòng đen
-        ctx.fillStyle = darkColor;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, 2.5, 4.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Màu mắt Anime chuyển sắc
-        ctx.fillStyle = mainColor;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + 1, 2, 3, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Đồng tử
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(cx, cy, 1, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Điểm phản quang Anime (Lấp lánh)
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(cx - 1, cy - 2, 1, 0, Math.PI * 2);
-        ctx.arc(cx + 1, cy + 2, 0.6, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // --- HATSUNE MIKU (ANIME CHUẨN ĐẸP) ---
+    // --- MIKU (PHONG CÁCH VAMPIRE DECO*27) ---
     const miku = {
         x: 180,
         baseX: 180,
         y: 160,
-        width: 40,
+        width: 45,
         height: 60,
         velocityY: 0,
         gravity: 0.65,
@@ -240,131 +223,95 @@
         draw() {
             const x = this.x;
             const y = this.y;
-            const hairWave = Math.sin(frameCount * 0.25) * 5;
+            const wave = Math.sin(frameCount * 0.2) * 3;
 
             ctx.save();
 
-            // 1. TÓC DÀI ANIME (Twin Tails mượt mà)
-            const hairGrad = ctx.createLinearGradient(x, y, x, y + 60);
-            hairGrad.addColorStop(0, '#39c5bb');
-            hairGrad.addColorStop(1, '#005f73');
-            ctx.fillStyle = hairGrad;
-
-            // Tóc bên trái
+            // 1. TÓC BỘC TWIN-TAILS (GÓC NHIÊNG CHUẨN MV)
+            ctx.fillStyle = '#d4f5f5'; // Tóc bạch kim xám xanh nhạt chuẩn Vampire
             ctx.beginPath();
-            ctx.moveTo(x + 6, y + 15);
-            ctx.quadraticCurveTo(x - 18, y + 25 + hairWave, x - 14, y + 58 + hairWave);
-            ctx.quadraticCurveTo(x - 5, y + 42, x + 10, y + 22);
+            ctx.moveTo(x + 10, y + 15);
+            ctx.quadraticCurveTo(x - 20, y + 20 + wave, x - 18, y + 55 + wave);
+            ctx.quadraticCurveTo(x - 5, y + 40, x + 12, y + 25);
             ctx.fill();
 
-            // Tóc bên phải
-            ctx.beginPath();
-            ctx.moveTo(x + 34, y + 15);
-            ctx.quadraticCurveTo(x + 58, y + 25 - hairWave, x + 54, y + 58 - hairWave);
-            ctx.quadraticCurveTo(x + 45, y + 42, x + 30, y + 22);
+            // Phủ Halftone trên tóc
+            ctx.fillStyle = halftonePattern;
             ctx.fill();
 
-            // Cài tóc đỏ (Square hair ribbons)
-            ctx.fillStyle = '#ff2a55';
-            ctx.fillRect(x + 3, y + 10, 5, 5);
-            ctx.fillRect(x + 32, y + 10, 5, 5);
-
-            // 2. CHÂN & TẤT ĐÙI ANIME (Zettai Ryouiki)
-            ctx.fillStyle = '#ffe0cb';
-            ctx.fillRect(x + 11, y + 42, 5, 8);
-            ctx.fillRect(x + 24, y + 42, 5, 8);
-
-            // Tất đùi đen tuyền bóng nhẹ
-            ctx.fillStyle = '#151518';
-            ctx.fillRect(x + 10, y + 45, 7, 15);
-            ctx.fillRect(x + 23, y + 45, 7, 15);
-
-            // Viền dạ quang xanh Miku
-            ctx.fillStyle = '#00ffff';
-            ctx.fillRect(x + 10, y + 45, 7, 2);
-            ctx.fillRect(x + 23, y + 45, 7, 2);
-
-            // 3. VÁY VÀ ÁO GILE (Anime Outfit)
-            // Váy xếp ly
-            ctx.fillStyle = '#2b2b36';
+            // Nơ buộc tóc nơ đen to (Vampire Bow)
+            ctx.fillStyle = '#111116';
             ctx.beginPath();
-            ctx.moveTo(x + 8, y + 34);
-            ctx.lineTo(x + 32, y + 34);
-            ctx.lineTo(x + 36, y + 44);
-            ctx.lineTo(x + 4, y + 44);
+            ctx.arc(x + 8, y + 16, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ff003c';
+            ctx.fillRect(x + 6, y + 14, 4, 4);
+
+            // 2. TRANG PHỤC VÂY VÀ ÁO
+            ctx.fillStyle = '#fca5a5'; // Áo hồng nhạt Pop-art
+            ctx.fillRect(x + 12, y + 28, 22, 16);
+
+            ctx.fillStyle = '#111116'; // Khẩu trang kéo xuống cằm (Vampire Mask)
+            ctx.beginPath();
+            ctx.arc(x + 22, y + 26, 9, 0, Math.PI);
+            ctx.fill();
+            // Chữ Vampire nhỏ
+            ctx.fillStyle = '#fff';
+            ctx.font = '8px Arial';
+            ctx.fillText('Vampire', x + 16, y + 31);
+
+            // Váy xếp ly đen
+            ctx.fillStyle = '#111116';
+            ctx.fillRect(x + 10, y + 42, 26, 12);
+
+            // 3. KHUÔN MẶT & RĂNG NANH VAMPIRE
+            ctx.fillStyle = '#fff5eb';
+            ctx.beginPath();
+            ctx.moveTo(x + 15, y + 10);
+            ctx.lineTo(x + 35, y + 18); // Nhọn góc nghiêng
+            ctx.lineTo(x + 20, y + 28);
             ctx.closePath();
             ctx.fill();
 
-            // Áo gile màu ghi bạc
-            ctx.fillStyle = '#e2e8f0';
-            ctx.fillRect(x + 11, y + 22, 18, 13);
-
-            // Cà vạt Miku
-            ctx.fillStyle = '#39c5bb';
+            // Miệng mở & Răng nanh Ma Cà Rồng
+            ctx.fillStyle = '#ff003c';
             ctx.beginPath();
-            ctx.moveTo(x + 18, y + 22);
-            ctx.lineTo(x + 22, y + 22);
-            ctx.lineTo(x + 21, y + 34);
-            ctx.lineTo(x + 19, y + 34);
+            ctx.arc(x + 30, y + 21, 5, 0, Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#fff'; // Răng nanh nhọn
+            ctx.beginPath();
+            ctx.moveTo(x + 27, y + 19); ctx.lineTo(x + 29, y + 23); ctx.lineTo(x + 30, y + 19);
             ctx.fill();
 
-            // 4. KHUÔN MẶT ANIME DỄ THƯƠNG
-            ctx.fillStyle = '#ffedd8';
+            // Mắt Vampire sắc bén
+            ctx.fillStyle = '#00f0ff';
             ctx.beginPath();
-            ctx.arc(x + 20, y + 15, 11, 0, Math.PI * 2);
+            ctx.ellipse(x + 25, y + 16, 3, 5, -Math.PI / 8, 0, Math.PI * 2);
             ctx.fill();
-
-            // Phấn hồng má (Anime Blush)
-            ctx.fillStyle = 'rgba(255, 105, 180, 0.4)';
-            ctx.beginPath();
-            ctx.arc(x + 13, y + 17, 2.5, 0, Math.PI * 2);
-            ctx.arc(x + 27, y + 17, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Mắt Anime Miku
-            drawAnimeEye(x + 15, y + 15, '#00b4d8', '#0077b6');
-            drawAnimeEye(x + 25, y + 15, '#00b4d8', '#0077b6');
-
-            // Lông mi sắc nét
-            ctx.strokeStyle = '#2b2b36';
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            ctx.arc(x + 15, y + 14, 3, Math.PI * 1.1, Math.PI * 1.9);
-            ctx.arc(x + 25, y + 14, 3, Math.PI * 1.1, Math.PI * 1.9);
-            ctx.stroke();
-
-            // Tóc mái tỉa tỉ mỉ
-            ctx.fillStyle = '#39c5bb';
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 12, 12, Math.PI * 0.95, Math.PI * 2.05);
-            ctx.fill();
-
-            // Cánh tóc mái
-            ctx.beginPath();
-            ctx.moveTo(x + 11, y + 12);
-            ctx.lineTo(x + 15, y + 18);
-            ctx.lineTo(x + 20, y + 12);
-            ctx.lineTo(x + 25, y + 18);
-            ctx.lineTo(x + 29, y + 12);
-            ctx.fill();
-
-            // 5. TAI NGHE HI-TECH ANIME
             ctx.fillStyle = '#111';
-            ctx.fillRect(x + 6, y + 10, 4, 8);
-            ctx.fillRect(x + 30, y + 10, 4, 8);
-            ctx.fillStyle = '#ff2a55';
-            ctx.fillRect(x + 7, y + 12, 2, 4);
-            ctx.fillRect(x + 31, y + 12, 2, 4);
+            ctx.fillRect(x + 24, y + 14, 3, 2);
+
+            // Trái tim nhỏ dưới mắt
+            ctx.fillStyle = '#ff003c';
+            ctx.beginPath();
+            ctx.arc(x + 28, y + 19, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tóc mái bạch kim
+            ctx.fillStyle = '#e2f8f8';
+            ctx.beginPath();
+            ctx.arc(x + 22, y + 13, 11, Math.PI, Math.PI * 2);
+            ctx.fill();
 
             ctx.restore();
         }
     };
 
-    // --- MRBEAST (ANIME MANGA STYLE) ---
+    // --- MRBEAST (CÙNG PHONG CÁCH MV VAMPIRE) ---
     const mrBeast = {
         x: 20,
         y: 160,
-        width: 40,
+        width: 45,
         height: 60,
         velocityY: 0,
         speed: 1.0,
@@ -377,89 +324,71 @@
 
             ctx.save();
 
-            // 1. CHÂN & GIÀY SNEAKER
-            ctx.fillStyle = '#ffe0cb';
-            ctx.fillRect(x + 11, y + 42, 5, 8);
-            ctx.fillRect(x + 24, y + 42, 5, 8);
+            // Quần Đen Pop-Art
+            ctx.fillStyle = '#111116';
+            ctx.fillRect(x + 12, y + 42, 22, 18);
 
-            // Quần Jeans Anime
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x + 10, y + 44, 7, 12);
-            ctx.fillRect(x + 23, y + 44, 7, 12);
+            // Áo Hoodie Đỏ Đậm Vampire
+            ctx.fillStyle = '#990022';
+            ctx.fillRect(x + 10, y + 24, 26, 20);
 
-            // Giày sneaker trắng
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + 9, y + 54, 8, 6);
-            ctx.fillRect(x + 23, y + 54, 8, 6);
+            // Pattern Halftone phủ lên áo
+            ctx.fillStyle = halftonePattern;
+            ctx.fillRect(x + 10, y + 24, 26, 20);
 
-            // 2. ÁO HOODIE ANIME CHẤT LƯỢNG
-            ctx.fillStyle = '#2563eb';
+            // Logo Báo Neon
+            ctx.fillStyle = '#00f0ff';
             ctx.beginPath();
-            ctx.roundRect(x + 7, y + 22, 26, 22, 4);
-            ctx.fill();
-
-            // Logo Báo MrBeast phong cách Anime Neon
-            ctx.fillStyle = '#06b6d4';
-            ctx.beginPath();
-            ctx.moveTo(x + 16, y + 26);
-            ctx.lineTo(x + 24, y + 26);
-            ctx.lineTo(x + 20, y + 33);
+            ctx.moveTo(x + 18, y + 28);
+            ctx.lineTo(x + 28, y + 28);
+            ctx.lineTo(x + 23, y + 36);
             ctx.closePath();
             ctx.fill();
 
-            // Dây áo Hoodie
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.2;
+            // Mặt & Râu quai nón Pop-art nghiêng
+            ctx.fillStyle = '#fff5eb';
             ctx.beginPath();
-            ctx.moveTo(x + 18, y + 23); ctx.lineTo(x + 18, y + 31);
-            ctx.moveTo(x + 22, y + 23); ctx.lineTo(x + 22, y + 31);
-            ctx.stroke();
-
-            // 3. KHUÔN MẶT ANIME NAM LẠNH LÙNG / ĐẦY THÁCH THỨC
-            ctx.fillStyle = '#ffedd8';
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 15, 11, 0, Math.PI * 2);
+            ctx.moveTo(x + 15, y + 10);
+            ctx.lineTo(x + 35, y + 18);
+            ctx.lineTo(x + 20, y + 28);
+            ctx.closePath();
             ctx.fill();
 
-            // Tóc đâm lọn Anime cá tính
-            ctx.fillStyle = '#451a03';
+            // Miệng mở Răng nanh
+            ctx.fillStyle = '#ff003c';
             ctx.beginPath();
-            ctx.arc(x + 20, y + 11, 12, Math.PI * 0.85, Math.PI * 2.15);
+            ctx.arc(x + 30, y + 21, 4, 0, Math.PI);
             ctx.fill();
-            // Lọn tóc nhọn
+            ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.moveTo(x + 10, y + 10); ctx.lineTo(x + 14, y + 15);
-            ctx.lineTo(x + 18, y + 9);  ctx.lineTo(x + 22, y + 15);
-            ctx.lineTo(x + 26, y + 9);  ctx.lineTo(x + 30, y + 13);
+            ctx.moveTo(x + 28, y + 19); ctx.lineTo(x + 30, y + 23); ctx.lineTo(x + 31, y + 19);
             ctx.fill();
 
-            // Râu quai nón tỉa gọn phong cách Anime
-            ctx.fillStyle = '#290f03';
+            // Râu Pop-Art
+            ctx.fillStyle = '#221111';
+            ctx.fillRect(x + 20, y + 23, 10, 4);
+
+            // Tóc Nâu gợn
+            ctx.fillStyle = '#3a1d1d';
             ctx.beginPath();
-            ctx.arc(x + 20, y + 16, 10, Math.PI * 0.25, Math.PI * 0.75);
+            ctx.arc(x + 22, y + 12, 11, Math.PI * 0.8, Math.PI * 2.1);
             ctx.fill();
 
-            // Mắt Anime sắc sảo
-            drawAnimeEye(x + 15, y + 14, '#3b82f6', '#1d4ed8');
-            drawAnimeEye(x + 25, y + 14, '#3b82f6', '#1d4ed8');
-
-            // Lông mày đậm
-            ctx.strokeStyle = '#290f03';
-            ctx.lineWidth = 1.5;
+            // Mắt đỏ ma mị
+            ctx.fillStyle = '#ff003c';
             ctx.beginPath();
-            ctx.moveTo(x + 12, y + 10); ctx.lineTo(x + 17, y + 12);
-            ctx.moveTo(x + 28, y + 10); ctx.lineTo(x + 23, y + 12);
-            ctx.stroke();
+            ctx.arc(x + 26, y + 16, 2.5, 0, Math.PI * 2);
+            ctx.fill();
 
             ctx.restore();
         }
     };
 
-    // --- KASANE TETO (ANIME CHUẨN) ---
+    // --- KASANE TETO (PHONG CÁCH VAMPIRE) ---
     class TetoObstacle {
         constructor() {
             this.x = canvas.width;
-            this.width = 40;
+            this.width = 45;
             this.height = 60;
             this.y = canvas.height - 30 - this.height;
         }
@@ -467,75 +396,57 @@
         draw() {
             const x = this.x;
             const y = this.y;
-            const drillWave = Math.sin(frameCount * 0.3) * 4;
+            const wave = Math.sin(frameCount * 0.2) * 3;
 
             ctx.save();
 
-            // 1. TÓC KHOAN ANIME TWIN DRILLS (Chi tiết mượt)
-            const tetoHairGrad = ctx.createLinearGradient(x, y, x, y + 50);
-            tetoHairGrad.addColorStop(0, '#ff2a55');
-            tetoHairGrad.addColorStop(1, '#990022');
-            ctx.fillStyle = tetoHairGrad;
-
-            // Drill trái
+            // Tóc khoan Twin-Drills Đỏ thẫm
+            ctx.fillStyle = '#ff003c';
             ctx.beginPath();
-            ctx.ellipse(x - 5, y + 22 + drillWave, 7, 16, Math.PI / 6, 0, Math.PI * 2);
+            ctx.ellipse(x - 5, y + 22 + wave, 8, 18, Math.PI / 5, 0, Math.PI * 2);
+            ctx.ellipse(x + 48, y + 22 - wave, 8, 18, -Math.PI / 5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Drill phải
-            ctx.beginPath();
-            ctx.ellipse(x + 45, y + 22 - drillWave, 7, 16, -Math.PI / 6, 0, Math.PI * 2);
+            // Pattern Halftone trên tóc Teto
+            ctx.fillStyle = halftonePattern;
             ctx.fill();
 
-            // 2. BÁNH MÌ BAGUETTE CÀI BÊN HÔNG (French Baguette)
+            // Trang phục đen & Đỏ rực
+            ctx.fillStyle = '#111116';
+            ctx.fillRect(x + 10, y + 26, 26, 28);
+            ctx.fillStyle = '#ff003c';
+            ctx.fillRect(x + 8, y + 38, 30, 8);
+
+            // Bánh mì Baguette góc nghiêng
             ctx.fillStyle = '#d97706';
             ctx.beginPath();
-            ctx.ellipse(x + 31, y + 32, 4, 12, -Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#78350f';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(x + 30, y + 30, 2, 0, Math.PI);
-            ctx.stroke();
-
-            // 3. TRANG PHỤC ANIME ĐỎ DẢI ĐEN
-            ctx.fillStyle = '#18181b';
-            ctx.fillRect(x + 10, y + 22, 20, 13);
-
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(x + 8, y + 34, 24, 10);
-
-            // Tất đùi Zettai Ryouiki
-            ctx.fillStyle = '#ffe0cb';
-            ctx.fillRect(x + 11, y + 42, 5, 8);
-            ctx.fillRect(x + 24, y + 42, 5, 8);
-
-            ctx.fillStyle = '#18181b';
-            ctx.fillRect(x + 10, y + 45, 7, 15);
-            ctx.fillRect(x + 23, y + 45, 7, 15);
-
-            // 4. KHUÔN MẶT ANIME
-            ctx.fillStyle = '#ffedd8';
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 15, 11, 0, Math.PI * 2);
+            ctx.ellipse(x + 34, y + 34, 4, 12, -Math.PI / 4, 0, Math.PI * 2);
             ctx.fill();
 
-            // Má hồng
-            ctx.fillStyle = 'rgba(255, 99, 132, 0.4)';
+            // Mặt Vampire
+            ctx.fillStyle = '#fff5eb';
             ctx.beginPath();
-            ctx.arc(x + 13, y + 17, 2.5, 0, Math.PI * 2);
-            ctx.arc(x + 27, y + 17, 2.5, 0, Math.PI * 2);
+            ctx.moveTo(x + 15, y + 10);
+            ctx.lineTo(x + 35, y + 18);
+            ctx.lineTo(x + 20, y + 28);
+            ctx.closePath();
             ctx.fill();
 
-            // Tóc mái đỏ
-            ctx.fillStyle = '#ff2a55';
+            // Răng nanh
+            ctx.fillStyle = '#ff003c';
             ctx.beginPath();
-            ctx.arc(x + 20, y + 12, 12, Math.PI * 0.95, Math.PI * 2.05);
+            ctx.arc(x + 30, y + 21, 5, 0, Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(x + 28, y + 19); ctx.lineTo(x + 30, y + 23); ctx.lineTo(x + 31, y + 19);
             ctx.fill();
 
-            // Mắt đỏ Teto Anime
-            drawAnimeEye(x + 15, y + 15, '#ef4444', '#991b1b');
-            drawAnimeEye(x + 25, y + 15, '#ef4444', '#991b1b');
+            // Mắt đỏ
+            ctx.fillStyle = '#ff003c';
+            ctx.beginPath();
+            ctx.arc(x + 25, y + 16, 2.5, 0, Math.PI * 2);
+            ctx.fill();
 
             ctx.restore();
         }
@@ -547,377 +458,37 @@
 
     let obstacles = [];
 
-    // --- PHÔNG NỀN VÀ MÔ TRƯỜNG ---
+    // --- PHÔNG NỀN ĐỎ CHUẨN MV VAMPIRE (DECO*27) ---
     let locationText = "";
     let currentMaxSpeed = 7.0;
 
     function drawBackground() {
-        if (score < 500) {
-            locationText = "📍 Địa điểm: The Backrooms (Tối đa: 7.0x)";
-            currentMaxSpeed = 7.0;
-
-            ctx.fillStyle = "#c2b280";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "#a89868";
-            for (let i = 0; i < canvas.width; i += 40) {
-                ctx.fillRect((i - (frameCount * (gameSpeed * 0.2)) % 40), 0, 18, canvas.height - 30);
-            }
-
-            ctx.fillStyle = "rgba(255, 255, 200, 0.25)";
-            ctx.fillRect(100, 10, 120, 12);
-            ctx.fillRect(450, 10, 120, 12);
-
-            ctx.fillStyle = "#5c5238";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-            ctx.fillStyle = "#3d3623";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
-
-        } else if (score >= 500 && score < 1500) {
-            locationText = "📍 Địa điểm: Đường phố Nước Mỹ (Tối đa: 8.5x)";
-            currentMaxSpeed = 8.5;
-
-            ctx.fillStyle = "#2c3e50";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "#1a252f";
-            ctx.fillRect(50, 60, 90, 160);
-            ctx.fillRect(180, 40, 110, 180);
-            ctx.fillRect(320, 80, 100, 140);
-            ctx.fillRect(460, 30, 120, 190);
-
-            ctx.fillStyle = "#f1c40f";
-            for (let bx = 60; bx < 560; bx += 70) {
-                for (let by = 70; by < 180; by += 25) {
-                    if ((bx + by) % 3 === 0) ctx.fillRect(bx, by, 10, 12);
-                }
-            }
-
-            ctx.fillStyle = "#34495e";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-
-            ctx.fillStyle = "#f1c40f";
-            for (let rx = 0; rx < canvas.width; rx += 60) {
-                ctx.fillRect((rx - (frameCount * gameSpeed) % 60), canvas.height - 16, 30, 4);
-            }
-
-        } else if (score >= 1500 && score < 2500) {
-            locationText = "📍 Địa điểm: Shibuya (Tối đa: 10.0x)";
-            currentMaxSpeed = 10.0;
-
-            ctx.fillStyle = "#0d0221";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "#190933";
-            ctx.fillRect(80, 30, 140, 190);
-            ctx.fillRect(260, 20, 180, 200);
-            ctx.fillRect(480, 40, 130, 180);
-
-            ctx.fillStyle = "#ff007f";
-            ctx.fillRect(100, 50, 100, 50);
-            ctx.fillStyle = "#00f0ff";
-            ctx.fillRect(280, 40, 140, 70);
-
-            ctx.fillStyle = "#fff";
-            ctx.font = "bold 12px Arial";
-            ctx.fillText("SHIBUYA 109", 295, 80);
-
-            ctx.fillStyle = "#222";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-            ctx.fillStyle = "#ffffff";
-            for (let sx = 0; sx < canvas.width; sx += 30) {
-                ctx.fillRect((sx - (frameCount * gameSpeed) % 30), canvas.height - 28, 12, 26);
-            }
-
-        } else if (score >= 2500 && score < 3400) {
-            locationText = "📍 Địa điểm: Tokyo (Tối đa: 12.5x)";
-            currentMaxSpeed = 12.5;
-
-            ctx.fillStyle = "#050b14";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "#ff3300";
-            ctx.beginPath();
-            ctx.moveTo(350, 20);
-            ctx.lineTo(310, 220);
-            ctx.lineTo(390, 220);
-            ctx.fill();
-
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(338, 70, 24, 15);
-            ctx.fillRect(330, 130, 40, 20);
-
-            ctx.fillStyle = "#1a1a24";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-            ctx.fillStyle = "#ffcc00";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 2);
-
-        } else if (score >= 3400 && score < 3500) {
-            locationText = "📍 Địa điểm: Nhà Trắng (Tối đa: 13.5x)";
-            currentMaxSpeed = 13.5;
-
-            ctx.fillStyle = "#70b5f5";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-            let cloudX = (frameCount * 0.8) % (canvas.width + 100);
-            ctx.beginPath();
-            ctx.arc(canvas.width - cloudX, 40, 20, 0, Math.PI * 2);
-            ctx.arc(canvas.width - cloudX + 25, 35, 25, 0, Math.PI * 2);
-            ctx.arc(canvas.width - cloudX + 50, 40, 20, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = "#f0f4f8";
-            ctx.fillRect(150, 60, 400, 160);
-            ctx.fillStyle = "#e1e8ed";
-            ctx.fillRect(250, 40, 200, 180);
-
-            ctx.fillStyle = "#ffffff";
-            for (let c = 270; c <= 410; c += 28) {
-                ctx.fillRect(c, 70, 14, 150);
-            }
-
-            ctx.fillStyle = "#2e8b57";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-
-        } else {
-            locationText = "🎬 Địa điểm: Hậu trường MrBeast (Tối đa: 15.0x)";
-            currentMaxSpeed = 15.0;
-
-            ctx.fillStyle = "#111116";
-            ctx.fillRect(0, 0, canvas.width, canvas.height - 30);
-
-            ctx.fillStyle = "#00ff40";
-            ctx.fillRect(120, 30, 460, 160);
-
-            ctx.fillStyle = "#00d4ff";
-            ctx.font = "bold 24px Arial";
-            ctx.fillText("MRBEAST STUDIO", 235, 110);
-
-            ctx.fillStyle = "#22222a";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-            ctx.fillStyle = "#ff0055";
-            ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
-        }
-    }
-
-    function updateMrBeast() {
-        if (miku.isJumping && !mrBeast.isJumping && Math.random() < 0.85) {
-            mrBeast.velocityY = miku.jumpPower;
-            mrBeast.isJumping = true;
-        }
-
-        mrBeast.velocityY += miku.gravity;
-        mrBeast.y += mrBeast.velocityY;
-
-        const groundY = canvas.height - 30 - mrBeast.height;
-        if (mrBeast.y > groundY) {
-            mrBeast.y = groundY;
-            mrBeast.velocityY = 0;
-            mrBeast.isJumping = false;
-        }
-
-        if (mrBeast.speed < mrBeast.maxSpeed) {
-            mrBeast.speed += 0.01;
-        }
-
-        if (mrBeast.x < miku.x - 40) {
-            mrBeast.x += (mrBeast.speed / mrBeast.maxSpeed) * 0.35;
-        }
-    }
-
-    function handleAction(e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        initAudio();
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-
-        if (!isGameRunning || isGameOver || isGameWon) {
-            resetGame();
-            isGameRunning = true;
-            actionBtn.innerText = "NHẢY! 🚀";
-            startMusic();
-            return;
-        }
-
-        if (!miku.isJumping) {
-            miku.velocityY = miku.jumpPower;
-            miku.isJumping = true;
-            play32BitJumpSound();
-        }
-    }
-
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-            e.preventDefault();
-            handleAction();
-        }
-    });
-
-    actionBtn.addEventListener('touchstart', handleAction, { passive: false });
-    actionBtn.addEventListener('click', handleAction);
-    canvas.addEventListener('touchstart', handleAction, { passive: false });
-
-    function resetGame() {
-        isGameOver = false;
-        isGameWon = false;
-        score = 0;
-        gameSpeed = baseSpeed;
-        obstacles = [];
-        miku.x = miku.baseX;
-        miku.y = 160;
-        miku.velocityY = 0;
-        miku.isJumping = false;
-        mrBeast.x = 20;
-        mrBeast.y = 160;
-        mrBeast.speed = 1.0;
-        mrBeast.velocityY = 0;
-        mrBeast.isJumping = false;
-        frameCount = 0;
-        actionBtn.innerText = "NHẢY! 🚀";
-        actionBtn.style.background = "linear-gradient(135deg, #ff4060, #0f3460)";
-    }
-
-    function triggerGameOver() {
-        isGameOver = true;
-        stopMusic();
-        actionBtn.innerText = "🔄 CHƠI LẠI (ĐIỆN THOẠI)";
-        actionBtn.style.background = "linear-gradient(135deg, #ff4060, #a00020)";
-        if (score > highScore) highScore = score;
-    }
-
-    function triggerGameWin() {
-        isGameWon = true;
-        score = 3600;
-        stopMusic();
-        actionBtn.innerText = "🏆 CHƠI LẠI TRÒ CHƠI";
-        actionBtn.style.background = "linear-gradient(135deg, #39c5bb, #2e8b57)";
-        if (score > highScore) highScore = score;
-    }
-
-    function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        drawBackground();
-
-        if (isGameRunning && !isGameOver && !isGameWon) {
-            frameCount++;
-            score = Math.floor(frameCount / 4);
-
-            if (score >= 3600) {
-                triggerGameWin();
-            }
-
-            let calculatedSpeed = baseSpeed + (frameCount / 250);
-            gameSpeed = Math.min(calculatedSpeed, currentMaxSpeed);
-
-            miku.velocityY += miku.gravity;
-            miku.y += miku.velocityY;
-
-            const groundY = canvas.height - 30 - miku.height;
-            if (miku.y > groundY) {
-                miku.y = groundY;
-                miku.velocityY = 0;
-                miku.isJumping = false;
-            }
-
-            if (miku.x < miku.baseX) {
-                miku.x += 0.5;
-            }
-
-            updateMrBeast();
-
-            let lastObstacleX = obstacles.length > 0 ? obstacles[obstacles.length - 1].x : 0;
-            let minDistance = 260 + (gameSpeed * 8);
-
-            if (frameCount % 90 === 0 && (canvas.width - lastObstacleX > minDistance)) {
-                if (Math.random() < 0.75) {
-                    obstacles.push(new TetoObstacle());
-                }
-            }
-
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].update();
-                obstacles[i].draw();
-
-                if (
-                    miku.x < obstacles[i].x + obstacles[i].width &&
-                    miku.x + miku.width > obstacles[i].x &&
-                    miku.y < obstacles[i].y + obstacles[i].height &&
-                    miku.y + miku.height > obstacles[i].y
-                ) {
-                    miku.x -= 12;
-                }
-
-                if (obstacles[i].x + obstacles[i].width < 0) {
-                    obstacles.splice(i, 1);
-                }
-            }
-
-            if (mrBeast.x + mrBeast.width >= miku.x + 5) {
-                triggerGameOver();
-            }
-
-            mrBeast.draw();
-            miku.draw();
-
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText(`Điểm: ${score}`, 15, 30);
-            ctx.fillText(`Tốc độ: ${gameSpeed.toFixed(1)}x`, 15, 50);
-            ctx.fillText(`Kỷ lục: ${highScore}`, canvas.width - 120, 30);
-
-            ctx.fillStyle = '#ffea00';
-            ctx.font = '13px Arial';
-            ctx.fillText(locationText, 15, 70);
-
-        } else if (!isGameRunning && !isGameOver && !isGameWon) {
-            mrBeast.draw();
-            miku.draw();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ff4060';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('BẤM NÚT HOẶC SPACE ĐỂ BẮT ĐẦU', canvas.width / 2, canvas.height / 2);
-            ctx.textAlign = 'left';
-        } else if (isGameWon) {
-            mrBeast.draw();
-            miku.draw();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffea00';
-            ctx.font = 'bold 28px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('BẠN ĐÃ THẮNG 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.fillText('Bấm nút "CHƠI LẠI" hoặc phím Space để chơi lại', canvas.width / 2, canvas.height / 2 + 25);
-            ctx.textAlign = 'left';
-        } else if (isGameOver) {
-            mrBeast.draw();
-            miku.draw();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ff4060';
-            ctx.font = 'bold 26px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('BẠN ĐÃ MẤT 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.fillText('Bấm nút "CHƠI LẠI" hoặc phím Space', canvas.width / 2, canvas.height / 2 + 25);
-            ctx.textAlign = 'left';
-        }
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    gameLoop();
-</script>
-</body>
-</html>
+        // Nền đỏ Crimson rực rỡ đặc trưng
+        ctx.fillStyle = '#e60033';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Lớp Phủ Halftone toàn màn hình
+        ctx.fillStyle = halftonePattern;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Chữ Tiếng Nhật nghệ thuật chuẩn MV
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.font = 'bold 36px "Segoe UI", sans-serif';
+        ctx.fillText('試したいな', 80, 80);
+        ctx.fillText('試シタイナ', 460, 80);
+
+        // Cánh dơi Vampire ở nền
+        ctx.fillStyle = '#111116';
+        ctx.beginPath();
+        ctx.moveTo(520, 120);
+        ctx.quadraticCurveTo(560, 100, 600, 130);
+        ctx.quadraticCurveTo(560, 140, 520, 120);
+        ctx.fill();
+
+        // Mặt đất đen Pop-art
+        ctx.fillStyle = '#111116';
+        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+        ctx.fillStyle = '#ff003c';
+        ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
+
+        locationText = "🩸 Chế độ: Vampire
