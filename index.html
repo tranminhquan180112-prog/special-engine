@@ -14,7 +14,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #0f111a;
+            background-color: #0b0d17;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -40,7 +40,7 @@
             border: 2px solid #1a233a;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 240, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 240, 255, 0.2);
         }
         canvas {
             display: block;
@@ -123,4 +123,538 @@
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
             gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {}
+    }
+
+    function playJumpSound() {
+        if (!audioCtx) return;
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } catch (e) {}
+    }
+
+    function startMusic() {
+        initAudio();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        stopMusic();
+        noteIdx = 0;
+        musicInterval = setInterval(() => {
+            if (isGameRunning && !isGameOver && !isGameWon) {
+                playNote(melody[noteIdx], 0.12, 'sine', 0.05);
+                noteIdx = (noteIdx + 1) % melody.length;
+            }
+        }, 150);
+    }
+
+    function stopMusic() {
+        if (musicInterval) {
+            clearInterval(musicInterval);
+            musicInterval = null;
+        }
+    }
+
+    // --- HATSUNE MIKU HOÀN HẢO ---
+    const miku = {
+        x: 180,
+        baseX: 180,
+        y: 160,
+        width: 40,
+        height: 60,
+        velocityY: 0,
+        gravity: 0.65,
+        jumpPower: -12.5,
+        isJumping: false,
+
+        draw() {
+            const x = this.x;
+            const y = this.y;
+            const wave = Math.sin(frameCount * 0.2) * 4;
+
+            ctx.save();
+
+            // Tóc Twin-tails xanh mượt mà (Hai bên)
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + 16);
+            ctx.quadraticCurveTo(x - 18, y + 25 + wave, x - 12, y + 58 + wave);
+            ctx.quadraticCurveTo(x - 4, y + 42, x + 12, y + 25);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x + 28, y + 16);
+            ctx.quadraticCurveTo(x + 52, y + 25 - wave, x + 44, y + 58 - wave);
+            ctx.quadraticCurveTo(x + 36, y + 42, x + 26, y + 25);
+            ctx.fill();
+
+            // Kẹp tóc đỏ
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(x + 5, y + 12, 6, 6);
+            ctx.fillRect(x + 27, y + 12, 6, 6);
+
+            // Chân & Giày boot đen
+            ctx.fillStyle = '#ffdfc4';
+            ctx.fillRect(x + 14, y + 44, 4, 12);
+            ctx.fillRect(x + 22, y + 44, 4, 12);
+            ctx.fillStyle = '#111319';
+            ctx.fillRect(x + 13, y + 50, 6, 10);
+            ctx.fillRect(x + 21, y + 50, 6, 10);
+            ctx.fillStyle = '#00f0ff';
+            ctx.fillRect(x + 13, y + 50, 6, 2);
+            ctx.fillRect(x + 21, y + 50, 6, 2);
+
+            // Váy xếp ly
+            ctx.fillStyle = '#1e222d';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + 36);
+            ctx.lineTo(x + 30, y + 36);
+            ctx.lineTo(x + 33, y + 46);
+            ctx.lineTo(x + 7, y + 46);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#00f0ff';
+            ctx.fillRect(x + 7, y + 44, 26, 2);
+
+            // Áo & Cà vạt xanh
+            ctx.fillStyle = '#d0d7de';
+            ctx.fillRect(x + 12, y + 22, 16, 15);
+            ctx.fillStyle = '#111319';
+            ctx.fillRect(x + 7, y + 25, 4, 14);
+            ctx.fillRect(x + 29, y + 25, 4, 14);
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.moveTo(x + 19, y + 22);
+            ctx.lineTo(x + 21, y + 22);
+            ctx.lineTo(x + 22, y + 33);
+            ctx.lineTo(x + 20, y + 36);
+            ctx.lineTo(x + 18, y + 33);
+            ctx.closePath();
+            ctx.fill();
+
+            // Khuôn mặt
+            ctx.fillStyle = '#ffdfc4';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 16, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mắt Anime
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.ellipse(x + 16, y + 16, 2.5, 4, 0, 0, Math.PI * 2);
+            ctx.ellipse(x + 24, y + 16, 2.5, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#111';
+            ctx.fillRect(x + 16, y + 15, 2, 2);
+            ctx.fillRect(x + 24, y + 15, 2, 2);
+
+            // Tóc mái
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 14, 10, Math.PI * 0.9, Math.PI * 2.1);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x + 18, y + 12);
+            ctx.lineTo(x + 20, y + 19);
+            ctx.lineTo(x + 22, y + 12);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    };
+
+    // --- MRBEAST TIÊU CHUẨN ---
+    const mrBeast = {
+        x: 20,
+        y: 160,
+        width: 40,
+        height: 60,
+        velocityY: 0,
+        speed: 1.0,
+        maxSpeed: 5.0,
+        isJumping: false,
+
+        draw() {
+            const x = this.x;
+            const y = this.y;
+
+            ctx.save();
+            ctx.fillStyle = '#1565c0';
+            ctx.fillRect(x + 12, y + 42, 16, 18);
+
+            ctx.fillStyle = '#212121';
+            ctx.fillRect(x + 8, y + 22, 24, 21);
+
+            ctx.fillStyle = '#00e5ff';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 32, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffdfc4';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 14, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#5d4037';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 11, 10, Math.PI * 0.8, Math.PI * 2.2);
+            ctx.fill();
+
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(x + 15, y + 19, 10, 3);
+            ctx.restore();
+        }
+    };
+
+    // --- KASANE TETO (TWIN DRILLS & BÁNH MÌ BAGUETTE) ---
+    class TetoObstacle {
+        constructor() {
+            this.x = canvas.width;
+            this.width = 42;
+            this.height = 60;
+            this.y = canvas.height - 30 - this.height;
+        }
+
+        draw() {
+            const x = this.x;
+            const y = this.y;
+            const wave = Math.cos(frameCount * 0.2) * 3;
+
+            ctx.save();
+
+            // Tóc khoan Twin-Drills Đỏ/Hồng
+            ctx.fillStyle = '#ff0055';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(x - 2 - (i * 2), y + 18 + (i * 7) + wave, 7 - (i * 0.8), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(x + 42 + (i * 2), y + 18 + (i * 7) - wave, 7 - (i * 0.8), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Chân & Giày
+            ctx.fillStyle = '#ffdfc4';
+            ctx.fillRect(x + 14, y + 44, 4, 12);
+            ctx.fillRect(x + 22, y + 44, 4, 12);
+            ctx.fillStyle = '#111319';
+            ctx.fillRect(x + 13, y + 50, 6, 10);
+            ctx.fillRect(x + 21, y + 50, 6, 10);
+
+            // Váy đen viền đỏ
+            ctx.fillStyle = '#1e222d';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + 36);
+            ctx.lineTo(x + 30, y + 36);
+            ctx.lineTo(x + 33, y + 46);
+            ctx.lineTo(x + 7, y + 46);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(x + 7, y + 44, 26, 2);
+
+            // Áo & Nơ
+            ctx.fillStyle = '#2b303c';
+            ctx.fillRect(x + 12, y + 22, 16, 15);
+            ctx.fillStyle = '#ff0055';
+            ctx.fillRect(x + 18, y + 24, 4, 10);
+
+            // Bánh mì Baguette
+            ctx.fillStyle = '#d97706';
+            ctx.beginPath();
+            ctx.ellipse(x + 32, y + 32, 4, 12, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Khuôn mặt & Mắt đỏ
+            ctx.fillStyle = '#ffdfc4';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 16, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.ellipse(x + 16, y + 16, 2.5, 4, 0, 0, Math.PI * 2);
+            ctx.ellipse(x + 24, y + 16, 2.5, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 14, 10, Math.PI * 0.9, Math.PI * 2.1);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        update() {
+            this.x -= gameSpeed;
+        }
+    }
+
+    let obstacles = [];
+
+    // --- PHÔNG NỀN THÀNH PHỐ ĐÊM NEON ---
+    function drawBackground() {
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#0a0d1a');
+        gradient.addColorStop(1, '#1a1f36');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#121626';
+        ctx.fillRect(60, 80, 50, 140);
+        ctx.fillRect(180, 100, 70, 120);
+        ctx.fillRect(380, 60, 60, 160);
+        ctx.fillRect(520, 110, 80, 110);
+
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+        ctx.fillRect(70, 90, 8, 8);
+        ctx.fillRect(90, 110, 8, 8);
+        ctx.fillRect(200, 120, 8, 8);
+        ctx.fillRect(400, 80, 8, 8);
+        ctx.fillRect(420, 130, 8, 8);
+
+        ctx.fillStyle = '#0d0f17';
+        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillRect(0, canvas.height - 30, canvas.width, 2);
+    }
+
+    function updateMrBeast() {
+        if (miku.isJumping && !mrBeast.isJumping && Math.random() < 0.85) {
+            mrBeast.velocityY = miku.jumpPower;
+            mrBeast.isJumping = true;
+        }
+
+        mrBeast.velocityY += miku.gravity;
+        mrBeast.y += mrBeast.velocityY;
+
+        const groundY = canvas.height - 30 - mrBeast.height;
+        if (mrBeast.y > groundY) {
+            mrBeast.y = groundY;
+            mrBeast.velocityY = 0;
+            mrBeast.isJumping = false;
+        }
+
+        if (mrBeast.speed < mrBeast.maxSpeed) {
+            mrBeast.speed += 0.01;
+        }
+
+        if (mrBeast.x < miku.x - 40) {
+            mrBeast.x += (mrBeast.speed / mrBeast.maxSpeed) * 0.35;
+        }
+    }
+
+    function handleAction(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        if (!isGameRunning || isGameOver || isGameWon) {
+            resetGame();
+            isGameRunning = true;
+            actionBtn.innerText = "NHẢY! 🚀";
+            startMusic();
+            return;
+        }
+
+        if (!miku.isJumping) {
+            miku.velocityY = miku.jumpPower;
+            miku.isJumping = true;
+            playJumpSound();
+        }
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'ArrowUp') {
+            e.preventDefault();
+            handleAction();
+        }
+    });
+
+    actionBtn.addEventListener('touchstart', handleAction, { passive: false });
+    actionBtn.addEventListener('click', handleAction);
+    canvas.addEventListener('touchstart', handleAction, { passive: false });
+
+    function resetGame() {
+        isGameOver = false;
+        isGameWon = false;
+        score = 0;
+        gameSpeed = baseSpeed;
+        obstacles = [];
+        miku.x = miku.baseX;
+        miku.y = 160;
+        miku.velocityY = 0;
+        miku.isJumping = false;
+        mrBeast.x = 20;
+        mrBeast.y = 160;
+        mrBeast.speed = 1.0;
+        mrBeast.velocityY = 0;
+        mrBeast.isJumping = false;
+        frameCount = 0;
+        actionBtn.innerText = "NHẢY! 🚀";
+        actionBtn.style.background = "linear-gradient(135deg, #00f0ff, #0052cc)";
+    }
+
+    function triggerGameOver() {
+        isGameOver = true;
+        stopMusic();
+        actionBtn.innerText = "🔄 CHƠI LẠI";
+        actionBtn.style.background = "linear-gradient(135deg, #ff0055, #990033)";
+        if (score > highScore) highScore = score;
+    }
+
+    function triggerGameWin() {
+        isGameWon = true;
+        score = 3600;
+        stopMusic();
+        actionBtn.innerText = "🏆 CHƠI LẠI TRÒ CHƠI";
+        actionBtn.style.background = "linear-gradient(135deg, #00ff88, #009955)";
+        if (score > highScore) highScore = score;
+    }
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawBackground();
+
+        if (isGameRunning && !isGameOver && !isGameWon) {
+            frameCount++;
+            score = Math.floor(frameCount / 4);
+
+            if (score >= 3600) {
+                triggerGameWin();
+            }
+
+            let calculatedSpeed = baseSpeed + (frameCount / 250);
+            gameSpeed = Math.min(calculatedSpeed, 10.0);
+
+            miku.velocityY += miku.gravity;
+            miku.y += miku.velocityY;
+
+            const groundY = canvas.height - 30 - miku.height;
+            if (miku.y > groundY) {
+                miku.y = groundY;
+                miku.velocityY = 0;
+                miku.isJumping = false;
+            }
+
+            if (miku.x < miku.baseX) {
+                miku.x += 0.5;
+            }
+
+            updateMrBeast();
+
+            let lastObstacleX = obstacles.length > 0 ? obstacles[obstacles.length - 1].x : 0;
+            let minDistance = 260 + (gameSpeed * 8);
+
+            if (frameCount % 90 === 0 && (canvas.width - lastObstacleX > minDistance)) {
+                if (Math.random() < 0.75) {
+                    obstacles.push(new TetoObstacle());
+                }
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].update();
+                obstacles[i].draw();
+
+                if (
+                    miku.x < obstacles[i].x + obstacles[i].width &&
+                    miku.x + miku.width > obstacles[i].x &&
+                    miku.y < obstacles[i].y + obstacles[i].height &&
+                    miku.y + miku.height > obstacles[i].y
+                ) {
+                    miku.x -= 12;
+                }
+
+                if (obstacles[i].x + obstacles[i].width < 0) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            if (mrBeast.x + mrBeast.width >= miku.x + 5) {
+                triggerGameOver();
+            }
+
+            mrBeast.draw();
+            miku.draw();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`Điểm: ${score}`, 15, 30);
+            ctx.fillText(`Tốc độ: ${gameSpeed.toFixed(1)}x`, 15, 50);
+            ctx.fillText(`Kỷ lục: ${highScore}`, canvas.width - 120, 30);
+
+        } else if (!isGameRunning && !isGameOver && !isGameWon) {
+            mrBeast.draw();
+            miku.draw();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00f0ff';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BẤM NÚT HOẶC SPACE ĐỂ BẮT ĐẦU', canvas.width / 2, canvas.height / 2);
+            ctx.textAlign = 'left';
+        } else if (isGameWon) {
+            mrBeast.draw();
+            miku.draw();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff88';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BẠN ĐÃ THẮNG 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Bấm nút "CHƠI LẠI" hoặc phím Space để chơi lại', canvas.width / 2, canvas.height / 2 + 25);
+            ctx.textAlign = 'left';
+        } else if (isGameOver) {
+            mrBeast.draw();
+            miku.draw();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ff0055';
+            ctx.font = 'bold 26px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BẠN ĐÃ MẤT 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Bấm nút "CHƠI LẠI" hoặc phím Space', canvas.width / 2, canvas.height / 2 + 25);
+            ctx.textAlign = 'left';
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+</script>
+</body>
+</html>
