@@ -97,16 +97,25 @@
     let gameSpeed = 5;
     let frameCount = 0;
 
-    // --- HỆ THỐNG ÂM THANH (AUDIO API) ---
+    // --- HỆ THỐNG ÂM THANH 16-BIT CHIPTUNE (AUDIO API) ---
     let audioCtx = null;
     let musicInterval = null;
 
-    const mrBeastRemixNotes = [
-        146.83, 146.83, 293.66, 146.83, 261.63, 146.83, 220.00, 207.65,
-        146.83, 146.83, 329.63, 146.83, 293.66, 261.63, 220.00, 196.00,
-        146.83, 146.83, 392.00, 349.23, 293.66, 146.83, 261.63, 220.00,
-        130.81, 146.83, 261.63, 293.66, 349.23, 329.63, 293.66, 261.63
+    // Melody & Bassline 16-bit
+    const chiptuneMelody = [
+        293.66, 293.66, 587.33, 293.66, 523.25, 293.66, 440.00, 415.30,
+        293.66, 293.66, 659.25, 293.66, 587.33, 523.25, 440.00, 392.00,
+        293.66, 293.66, 783.99, 698.46, 587.33, 293.66, 523.25, 440.00,
+        261.63, 293.66, 523.25, 587.33, 698.46, 659.25, 587.33, 523.25
     ];
+
+    const chiptuneBass = [
+        146.83, 146.83, 146.83, 146.83, 130.81, 130.81, 110.00, 103.83,
+        146.83, 146.83, 164.81, 164.81, 146.83, 130.81, 110.00, 98.00,
+        146.83, 146.83, 196.00, 174.61, 146.83, 146.83, 130.81, 110.00,
+        65.41,  73.42,  130.81, 146.83, 174.61, 164.81, 146.83, 130.81
+    ];
+
     let noteIdx = 0;
 
     function initAudio() {
@@ -115,16 +124,17 @@
         }
     }
 
-    function playNote(freq, duration = 0.14) {
+    // Âm thanh 16-bit Retro
+    function play16BitNote(freq, duration = 0.12, type = 'square', volume = 0.08) {
         if (!audioCtx || isGameOver || isGameWon) return;
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
+            osc.type = type; // 'square' & 'sawtooth' tạo âm 16-bit chuẩn
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
@@ -134,26 +144,27 @@
         } catch (e) {}
     }
 
-    // Tiếng Teto kêu khi nhảy
-    function playTetoJumpSound() {
+    // Hiệu ứng nhảy 16-bit Arpeggio
+    function play16BitJumpSound() {
         if (!audioCtx) return;
         try {
             const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach((f, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(f, now + i * 0.025);
 
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(523.25, now);
-            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.12);
+                gain.gain.setValueAtTime(0.12, now + i * 0.025);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.025 + 0.05);
 
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.start(now);
-            osc.stop(now + 0.12);
+                osc.start(now + i * 0.025);
+                osc.stop(now + i * 0.025 + 0.05);
+            });
         } catch (e) {}
     }
 
@@ -166,10 +177,13 @@
         noteIdx = 0;
         musicInterval = setInterval(() => {
             if (isGameRunning && !isGameOver && !isGameWon) {
-                playNote(mrBeastRemixNotes[noteIdx], 0.15);
-                noteIdx = (noteIdx + 1) % mrBeastRemixNotes.length;
+                // Lead 16-bit
+                play16BitNote(chiptuneMelody[noteIdx], 0.11, 'square', 0.07);
+                // Bass 16-bit
+                play16BitNote(chiptuneBass[noteIdx], 0.13, 'sawtooth', 0.09);
+                noteIdx = (noteIdx + 1) % chiptuneMelody.length;
             }
-        }, 135);
+        }, 125);
     }
 
     function stopMusic() {
@@ -205,33 +219,93 @@
         isJumping: false
     };
 
-    // Vật cản Teto Béo
+    // Vật cản Teto Xinh Đẹp (Ngoại hình tỉ mỉ phong cách Anime/Miku)
     class TetoObstacle {
         constructor() {
             this.x = canvas.width;
-            this.width = 44;
-            this.height = 46;
+            this.width = 36;
+            this.height = 52;
             this.y = canvas.height - 30 - this.height;
             this.color = '#ff4060';
         }
 
         draw() {
+            const x = this.x;
+            const y = this.y;
+            const drillWave = Math.sin(frameCount * 0.3) * 3;
+
+            // --- 1. TÓC KHOAN XOẮN ĐẶC TRƯNG (Twin Drills) ---
+            ctx.fillStyle = '#ff2a55';
+            // Tóc bên trái
+            ctx.fillRect(x - 8, y + 6 + drillWave, 8, 12);
+            ctx.fillRect(x - 12, y + 16 + drillWave, 10, 14);
+            ctx.fillRect(x - 8, y + 28 + drillWave, 6, 10);
+
+            // Tóc bên phải
+            ctx.fillRect(x + 36, y + 6 - drillWave, 8, 12);
+            ctx.fillRect(x + 38, y + 16 - drillWave, 10, 14);
+            ctx.fillRect(x + 38, y + 28 - drillWave, 6, 10);
+
+            // --- 2. VÁY & TRANG PHỤC (Outfit) ---
+            // Váy đỏ xếp ly
+            ctx.fillStyle = '#cc0033';
+            ctx.fillRect(x + 6, y + 30, 24, 10);
+
+            // Áo croptop đen
+            ctx.fillStyle = '#222226';
+            ctx.fillRect(x + 8, y + 18, 20, 13);
+
+            // Nơ đỏ trước ngực
+            ctx.fillStyle = '#ff0044';
+            ctx.fillRect(x + 15, y + 20, 6, 4);
+
+            // Ca-vát/Viền đỏ
             ctx.fillStyle = '#ff4060';
-            ctx.fillRect(this.x + 4, this.y + 16, 36, 26);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(this.x + 18, this.y + 18, 8, 20);
+            ctx.fillRect(x + 17, y + 24, 2, 7);
 
-            ctx.fillStyle = '#ffdca8';
-            ctx.fillRect(this.x + 8, this.y + 4, 28, 18);
+            // --- 3. ĐẦU & KHUÔN MẶT (Face & Hair) ---
+            // Mặt (Làn da)
+            ctx.fillStyle = '#ffe0cb';
+            ctx.fillRect(x + 6, y + 2, 24, 18);
 
-            ctx.fillStyle = '#d62845';
-            ctx.fillRect(this.x - 4, this.y + 6, 12, 14);
-            ctx.fillRect(this.x + 36, this.y + 6, 12, 14);
-            ctx.fillRect(this.x + 6, this.y, 32, 8);
+            // Mái tóc đỏ
+            ctx.fillStyle = '#ff2a55';
+            ctx.fillRect(x + 4, y, 28, 7);
+            ctx.fillRect(x + 4, y + 6, 4, 8);  // Tóc mái trái
+            ctx.fillRect(x + 28, y + 6, 4, 8); // Tóc mái phải
+            ctx.fillRect(x + 15, y + 6, 6, 6); // Tóc mái giữa
 
-            ctx.fillStyle = '#b3002d';
-            ctx.fillRect(this.x + 14, this.y + 10, 4, 5);
-            ctx.fillRect(this.x + 26, this.y + 10, 4, 5);
+            // Đôi mắt màu đỏ ruby
+            ctx.fillStyle = '#d60036';
+            ctx.fillRect(x + 10, y + 8, 4, 6);
+            ctx.fillRect(x + 22, y + 8, 4, 6);
+
+            // Điểm sáng trong mắt
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 11, y + 9, 2, 2);
+            ctx.fillRect(x + 23, y + 9, 2, 2);
+
+            // Bánh mì Pháp (Baguette) cài bên vai
+            ctx.fillStyle = '#d48b38';
+            ctx.fillRect(x + 26, y + 16, 8, 14);
+            ctx.fillStyle = '#f0b067';
+            ctx.fillRect(x + 28, y + 18, 4, 10);
+
+            // --- 4. CHÂN & TẤT ĐÙI (Legs & Boots) ---
+            // Đùi
+            ctx.fillStyle = '#ffe0cb';
+            ctx.fillRect(x + 10, y + 38, 6, 4);
+            ctx.fillRect(x + 20, y + 38, 6, 4);
+
+            // Tất đùi đen (Over-knee socks) & Giày
+            ctx.fillStyle = '#18181c';
+            ctx.fillRect(x + 10, y + 40, 6, 12);
+            ctx.fillRect(x + 20, y + 40, 6, 12);
+
+            // Đế giày màu đỏ
+            ctx.fillStyle = '#ff0044';
+            ctx.fillRect(x + 9, y + 50, 8, 2);
+            ctx.fillRect(x + 19, y + 50, 8, 2);
         }
 
         update() {
@@ -247,7 +321,6 @@
 
     function drawBackground() {
         if (score < 500) {
-            // < 500đ: Backrooms - Giới hạn tốc độ: 7.0
             locationText = "📍 Địa điểm: The Backrooms (Tối đa: 7.0x)";
             currentMaxSpeed = 7.0;
 
@@ -269,7 +342,6 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 3);
 
         } else if (score >= 500 && score < 1500) {
-            // 500 - 1499đ: Đường phố Mỹ - Giới hạn tốc độ: 8.5
             locationText = "📍 Địa điểm: Đường phố Nước Mỹ (Tối đa: 8.5x)";
             currentMaxSpeed = 8.5;
 
@@ -298,7 +370,6 @@
             }
 
         } else if (score >= 1500 && score < 2500) {
-            // 1500 - 2499đ: Shibuya - Giới hạn tốc độ: 10.0
             locationText = "📍 Địa điểm: Shibuya (Tối đa: 10.0x)";
             currentMaxSpeed = 10.0;
 
@@ -327,7 +398,6 @@
             }
 
         } else if (score >= 2500 && score < 3400) {
-            // 2500 - 3399đ: Tokyo - Giới hạn tốc độ: 12.5
             locationText = "📍 Địa điểm: Tokyo (Tối đa: 12.5x)";
             currentMaxSpeed = 12.5;
 
@@ -351,7 +421,6 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 2);
 
         } else if (score >= 3400 && score < 3500) {
-            // 3400 - 3499đ: Nhà Trắng - Giới hạn tốc độ: 13.5
             locationText = "📍 Địa điểm: Nhà Trắng (Tối đa: 13.5x)";
             currentMaxSpeed = 13.5;
 
@@ -396,7 +465,6 @@
             ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
 
         } else {
-            // ≥ 3500đ: Hậu trường MrBeast - Giới hạn tốc độ: 15.0
             locationText = "🎬 Địa điểm: Hậu trường MrBeast (Tối đa: 15.0x)";
             currentMaxSpeed = 15.0;
 
@@ -526,7 +594,7 @@
         if (!miku.isJumping) {
             miku.velocityY = miku.jumpPower;
             miku.isJumping = true;
-            playTetoJumpSound();
+            play16BitJumpSound();
         }
     }
 
@@ -591,7 +659,6 @@
                 triggerGameWin();
             }
 
-            // Tính toán tốc độ dựa trên thời gian và ÁP DỤNG CƠ CHẾ GIỚI HẠN TỐC ĐỘ (Speed Cap)
             let calculatedSpeed = baseSpeed + (frameCount / 250);
             gameSpeed = Math.min(calculatedSpeed, currentMaxSpeed);
 
