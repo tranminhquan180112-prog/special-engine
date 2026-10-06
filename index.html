@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Teto Béo - MrBeast Rượt Đuổi</title>
+    <title>Nếu để tôi bắt đc bạn sẽ mất 5tr đô</title>
     <style>
         * {
             margin: 0;
@@ -26,10 +26,11 @@
         }
         h1 {
             margin-bottom: 10px;
-            color: #39c5bb;
-            text-shadow: 0 0 10px rgba(57, 197, 187, 0.5);
-            font-size: 22px;
+            color: #ff4060;
+            text-shadow: 0 0 10px rgba(255, 64, 96, 0.5);
+            font-size: 20px;
             text-align: center;
+            padding: 0 10px;
         }
         #game-container {
             position: relative;
@@ -74,7 +75,7 @@
 </head>
 <body>
 
-    <h1>Teto Béo - MrBeast Rượt Đuổi</h1>
+    <h1>Nếu để tôi bắt đc bạn sẽ mất 5tr đô</h1>
     <div id="game-container">
         <canvas id="gameCanvas" width="700" height="250"></canvas>
     </div>
@@ -100,7 +101,6 @@
     let audioCtx = null;
     let musicInterval = null;
 
-    // Giai điệu chính & hòa âm của Looping the Rooms
     const loopingNotes = [
         311.13, 349.23, 392.00, 466.16, 415.30, 392.00, 349.23, 311.13,
         261.63, 311.13, 349.23, 392.00, 349.23, 311.13, 293.66, 261.63,
@@ -120,7 +120,7 @@
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square'; // Tiếng Chiptune 8-bit chuẩn
+            osc.type = 'square';
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
             gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
@@ -146,7 +146,7 @@
                 playNote(loopingNotes[noteIdx], 0.18);
                 noteIdx = (noteIdx + 1) % loopingNotes.length;
             }
-        }, 170); // Tốc độ nhịp nhanh cuốn hút của Looping the Rooms
+        }, 170);
     }
 
     function stopMusic() {
@@ -191,23 +191,19 @@
         }
 
         draw() {
-            // Thân Teto béo
             ctx.fillStyle = '#ff4060';
             ctx.fillRect(this.x + 4, this.y + 16, 36, 26);
             ctx.fillStyle = '#fff';
             ctx.fillRect(this.x + 18, this.y + 18, 8, 20);
 
-            // Đầu & Mặt
             ctx.fillStyle = '#ffdca8';
             ctx.fillRect(this.x + 8, this.y + 4, 28, 18);
 
-            // Tóc khoan tròn 2 bên đặc trưng Teto
             ctx.fillStyle = '#d62845';
             ctx.fillRect(this.x - 4, this.y + 6, 12, 14);
             ctx.fillRect(this.x + 36, this.y + 6, 12, 14);
             ctx.fillRect(this.x + 6, this.y, 32, 8);
 
-            // Mắt Teto đỏ
             ctx.fillStyle = '#b3002d';
             ctx.fillRect(this.x + 14, this.y + 10, 4, 5);
             ctx.fillRect(this.x + 26, this.y + 10, 4, 5);
@@ -220,39 +216,32 @@
 
     let obstacles = [];
 
-    // Vẽ Miku (Tóc 2 bên vẫy)
+    // Vẽ Miku
     function drawMiku() {
         const hairWave = Math.sin(frameCount * 0.2) * 4;
 
-        // Tóc 2 bên (Twin-tails)
         ctx.fillStyle = miku.color;
         ctx.fillRect(miku.x - 10, miku.y + 6 + hairWave, 10, 32);
         ctx.fillRect(miku.x + miku.width, miku.y + 6 - hairWave, 10, 32);
 
-        // Thân & Váy
         ctx.fillStyle = "#222";
         ctx.fillRect(miku.x + 8, miku.y + 20, 20, 18);
         ctx.fillStyle = "#fff";
         ctx.fillRect(miku.x + 10, miku.y + 20, 16, 10);
 
-        // Cà vạt xanh
         ctx.fillStyle = miku.color;
         ctx.fillRect(miku.x + 16, miku.y + 22, 4, 12);
 
-        // Đầu & Mặt
         ctx.fillStyle = "#ffdca8";
         ctx.fillRect(miku.x + 6, miku.y + 2, 24, 18);
 
-        // Tóc mái xanh
         ctx.fillStyle = miku.color;
         ctx.fillRect(miku.x + 4, miku.y, 28, 7);
 
-        // Mắt xanh Miku
         ctx.fillStyle = "#008b8b";
         ctx.fillRect(miku.x + 11, miku.y + 8, 4, 6);
         ctx.fillRect(miku.x + 21, miku.y + 8, 4, 6);
 
-        // Đôi chân
         ctx.fillStyle = "#111";
         ctx.fillRect(miku.x + 10, miku.y + 38, 6, 14);
         ctx.fillRect(miku.x + 20, miku.y + 38, 6, 14);
@@ -409,7 +398,7 @@
                     miku.y < obstacles[i].y + obstacles[i].height &&
                     miku.y + miku.height > obstacles[i].y
                 ) {
-                    miku.x -= 12; // Vấp Teto béo bị đẩy lùi về phía MrBeast
+                    miku.x -= 12;
                 }
 
                 if (obstacles[i].x + obstacles[i].width < 0) {
@@ -417,7 +406,6 @@
                 }
             }
 
-            // MrBeast chạm vào Miku là THUA
             if (mrBeast.x + mrBeast.width >= miku.x + 5) {
                 triggerGameOver();
             }
@@ -444,12 +432,13 @@
         } else if (isGameOver) {
             drawMrBeast();
             drawMiku();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ff4060';
             ctx.font = 'bold 26px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('MRBEAST ĐÃ BẮT ĐƯỢC MIKU!', canvas.width / 2, canvas.height / 2 - 10);
+            // Dòng thông báo khi MrBeast bắt được
+            ctx.fillText('BẠN ĐÃ MẤT 5TR ĐÔ!', canvas.width / 2, canvas.height / 2 - 10);
             ctx.fillStyle = '#fff';
             ctx.font = '16px Arial';
             ctx.fillText('Bấm nút "CHƠI LẠI" hoặc phím Space', canvas.width / 2, canvas.height / 2 + 25);
@@ -463,3 +452,4 @@
 </script>
 </body>
 </html>
+
