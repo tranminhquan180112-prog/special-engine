@@ -97,19 +97,26 @@
     let gameSpeed = 5;
     let frameCount = 0;
 
-    // --- HỆ THỐNG ÂM THANH 16-BIT CHIPTUNE (AUDIO API) ---
+    // --- HỆ THỐNG ÂM THANH 32-BIT SYNTHWAVE / HIFI CHIPTUNE ---
     let audioCtx = null;
     let musicInterval = null;
 
-    // Melody & Bassline 16-bit
-    const chiptuneMelody = [
+    // Melody, Harmony & Bassline 32-bit
+    const melody32Bit = [
         293.66, 293.66, 587.33, 293.66, 523.25, 293.66, 440.00, 415.30,
         293.66, 293.66, 659.25, 293.66, 587.33, 523.25, 440.00, 392.00,
         293.66, 293.66, 783.99, 698.46, 587.33, 293.66, 523.25, 440.00,
         261.63, 293.66, 523.25, 587.33, 698.46, 659.25, 587.33, 523.25
     ];
 
-    const chiptuneBass = [
+    const harmony32Bit = [
+        369.99, 369.99, 739.99, 369.99, 659.25, 369.99, 554.37, 523.25,
+        369.99, 369.99, 830.61, 369.99, 739.99, 659.25, 554.37, 493.88,
+        369.99, 369.99, 987.77, 880.00, 739.99, 369.99, 659.25, 554.37,
+        329.63, 369.99, 659.25, 739.99, 880.00, 830.61, 739.99, 659.25
+    ];
+
+    const bass32Bit = [
         146.83, 146.83, 146.83, 146.83, 130.81, 130.81, 110.00, 103.83,
         146.83, 146.83, 164.81, 164.81, 146.83, 130.81, 110.00, 98.00,
         146.83, 146.83, 196.00, 174.61, 146.83, 146.83, 130.81, 110.00,
@@ -124,13 +131,13 @@
         }
     }
 
-    // Âm thanh 16-bit Retro
-    function play16BitNote(freq, duration = 0.12, type = 'square', volume = 0.08) {
+    // Nốt nhạc 32-bit mượt mà hơn (Phối kết hợp đa sóng Synth)
+    function play32BitNote(freq, duration = 0.14, type = 'triangle', volume = 0.08) {
         if (!audioCtx || isGameOver || isGameWon) return;
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type; // 'square' & 'sawtooth' tạo âm 16-bit chuẩn
+            osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
             gain.gain.setValueAtTime(volume, audioCtx.currentTime);
@@ -144,26 +151,26 @@
         } catch (e) {}
     }
 
-    // Hiệu ứng nhảy 16-bit Arpeggio
-    function play16BitJumpSound() {
+    // Tiếng nhảy 32-bit Synth Arpeggio
+    function play32BitJumpSound() {
         if (!audioCtx) return;
         try {
             const now = audioCtx.currentTime;
-            const freqs = [523.25, 659.25, 783.99, 1046.50];
+            const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
             freqs.forEach((f, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(f, now + i * 0.025);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(f, now + i * 0.02);
 
-                gain.gain.setValueAtTime(0.12, now + i * 0.025);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.025 + 0.05);
+                gain.gain.setValueAtTime(0.1, now + i * 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.02 + 0.06);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
 
-                osc.start(now + i * 0.025);
-                osc.stop(now + i * 0.025 + 0.05);
+                osc.start(now + i * 0.02);
+                osc.stop(now + i * 0.02 + 0.06);
             });
         } catch (e) {}
     }
@@ -177,11 +184,14 @@
         noteIdx = 0;
         musicInterval = setInterval(() => {
             if (isGameRunning && !isGameOver && !isGameWon) {
-                // Lead 16-bit
-                play16BitNote(chiptuneMelody[noteIdx], 0.11, 'square', 0.07);
-                // Bass 16-bit
-                play16BitNote(chiptuneBass[noteIdx], 0.13, 'sawtooth', 0.09);
-                noteIdx = (noteIdx + 1) % chiptuneMelody.length;
+                // Lead Melody (32-bit Sóng tam giác mượt)
+                play32BitNote(melody32Bit[noteIdx], 0.13, 'triangle', 0.08);
+                // Harmony (Sóng vuông dịu)
+                play32BitNote(harmony32Bit[noteIdx], 0.11, 'square', 0.03);
+                // Bass Line (Sóng răng cưa trầm)
+                play32BitNote(bass32Bit[noteIdx], 0.14, 'sawtooth', 0.09);
+
+                noteIdx = (noteIdx + 1) % melody32Bit.length;
             }
         }, 125);
     }
@@ -193,7 +203,7 @@
         }
     }
 
-    // Nhân vật Miku
+    // Nhân vật Miku Xinh Đẹp (Thiết kế chi tiết chuẩn Anime như Teto)
     const miku = {
         x: 180,
         baseX: 180,
@@ -204,7 +214,89 @@
         velocityY: 0,
         gravity: 0.65,
         jumpPower: -12.5,
-        isJumping: false
+        isJumping: false,
+
+        draw() {
+            const x = this.x;
+            const y = this.y;
+            const hairWave = Math.sin(frameCount * 0.3) * 3;
+
+            // --- 1. TÓC DÀI HAI BÊN ĐẶC TRƯNG (Twin Tails) ---
+            ctx.fillStyle = '#39c5bb';
+            // Tóc bên trái
+            ctx.fillRect(x - 8, y + 6 + hairWave, 8, 14);
+            ctx.fillRect(x - 11, y + 18 + hairWave, 9, 16);
+            ctx.fillRect(x - 8, y + 32 + hairWave, 6, 12);
+
+            // Tóc bên phải
+            ctx.fillRect(x + 36, y + 6 - hairWave, 8, 14);
+            ctx.fillRect(x + 38, y + 18 - hairWave, 9, 16);
+            ctx.fillRect(x + 38, y + 32 - hairWave, 6, 12);
+
+            // Cặp cài tóc / Nơ đỏ cài tóc
+            ctx.fillStyle = '#ff2a55';
+            ctx.fillRect(x - 2, y + 4, 6, 4);
+            ctx.fillRect(x + 32, y + 4, 6, 4);
+
+            // --- 2. TRANG PHỤC (Outfit) ---
+            // Váy xám xếp ly
+            ctx.fillStyle = '#44444a';
+            ctx.fillRect(x + 6, y + 30, 24, 10);
+
+            // Áo ghi xám (Gile)
+            ctx.fillStyle = '#d0d4dc';
+            ctx.fillRect(x + 8, y + 18, 20, 13);
+
+            // Ca-vát xanh ngọc đặc trưng
+            ctx.fillStyle = '#00a896';
+            ctx.fillRect(x + 17, y + 20, 2, 11);
+
+            // Tai nghe màu đen/đỏ
+            ctx.fillStyle = '#111';
+            ctx.fillRect(x + 2, y + 8, 4, 8);
+            ctx.fillRect(x + 30, y + 8, 4, 8);
+            ctx.fillStyle = '#ff2a55';
+            ctx.fillRect(x + 3, y + 10, 2, 4);
+            ctx.fillRect(x + 31, y + 10, 2, 4);
+
+            // --- 3. ĐẦU & KHUÔN MẶT (Face & Hair) ---
+            // Mặt (Làn da)
+            ctx.fillStyle = '#ffe0cb';
+            ctx.fillRect(x + 6, y + 2, 24, 18);
+
+            // Tóc mái xanh ngọc
+            ctx.fillStyle = '#39c5bb';
+            ctx.fillRect(x + 4, y, 28, 7);
+            ctx.fillRect(x + 4, y + 6, 4, 8);
+            ctx.fillRect(x + 28, y + 6, 4, 8);
+            ctx.fillRect(x + 15, y + 6, 6, 6);
+
+            // Đôi mắt xanh thẫm
+            ctx.fillStyle = '#007a87';
+            ctx.fillRect(x + 10, y + 8, 4, 6);
+            ctx.fillRect(x + 22, y + 8, 4, 6);
+
+            // Điểm sáng trong mắt
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 11, y + 9, 2, 2);
+            ctx.fillRect(x + 23, y + 9, 2, 2);
+
+            // --- 4. CHÂN & TẤT ĐÙI (Legs & Boots) ---
+            // Đùi
+            ctx.fillStyle = '#ffe0cb';
+            ctx.fillRect(x + 10, y + 38, 6, 4);
+            ctx.fillRect(x + 20, y + 38, 6, 4);
+
+            // Tất đùi đen (Over-knee socks)
+            ctx.fillStyle = '#18181c';
+            ctx.fillRect(x + 10, y + 40, 6, 12);
+            ctx.fillRect(x + 20, y + 40, 6, 12);
+
+            // Viền tất xanh ngọc
+            ctx.fillStyle = '#39c5bb';
+            ctx.fillRect(x + 9, y + 50, 8, 2);
+            ctx.fillRect(x + 19, y + 50, 8, 2);
+        }
     };
 
     // Nhân vật MrBeast
@@ -219,7 +311,7 @@
         isJumping: false
     };
 
-    // Vật cản Teto Xinh Đẹp (Ngoại hình tỉ mỉ phong cách Anime/Miku)
+    // Vật cản Teto Xinh Đẹp (Ngoại hình phong cách Anime/Miku)
     class TetoObstacle {
         constructor() {
             this.x = canvas.width;
@@ -236,73 +328,60 @@
 
             // --- 1. TÓC KHOAN XOẮN ĐẶC TRƯNG (Twin Drills) ---
             ctx.fillStyle = '#ff2a55';
-            // Tóc bên trái
             ctx.fillRect(x - 8, y + 6 + drillWave, 8, 12);
             ctx.fillRect(x - 12, y + 16 + drillWave, 10, 14);
             ctx.fillRect(x - 8, y + 28 + drillWave, 6, 10);
 
-            // Tóc bên phải
             ctx.fillRect(x + 36, y + 6 - drillWave, 8, 12);
             ctx.fillRect(x + 38, y + 16 - drillWave, 10, 14);
             ctx.fillRect(x + 38, y + 28 - drillWave, 6, 10);
 
             // --- 2. VÁY & TRANG PHỤC (Outfit) ---
-            // Váy đỏ xếp ly
             ctx.fillStyle = '#cc0033';
             ctx.fillRect(x + 6, y + 30, 24, 10);
 
-            // Áo croptop đen
             ctx.fillStyle = '#222226';
             ctx.fillRect(x + 8, y + 18, 20, 13);
 
-            // Nơ đỏ trước ngực
             ctx.fillStyle = '#ff0044';
             ctx.fillRect(x + 15, y + 20, 6, 4);
 
-            // Ca-vát/Viền đỏ
             ctx.fillStyle = '#ff4060';
             ctx.fillRect(x + 17, y + 24, 2, 7);
 
             // --- 3. ĐẦU & KHUÔN MẶT (Face & Hair) ---
-            // Mặt (Làn da)
             ctx.fillStyle = '#ffe0cb';
             ctx.fillRect(x + 6, y + 2, 24, 18);
 
-            // Mái tóc đỏ
             ctx.fillStyle = '#ff2a55';
             ctx.fillRect(x + 4, y, 28, 7);
-            ctx.fillRect(x + 4, y + 6, 4, 8);  // Tóc mái trái
-            ctx.fillRect(x + 28, y + 6, 4, 8); // Tóc mái phải
-            ctx.fillRect(x + 15, y + 6, 6, 6); // Tóc mái giữa
+            ctx.fillRect(x + 4, y + 6, 4, 8);
+            ctx.fillRect(x + 28, y + 6, 4, 8);
+            ctx.fillRect(x + 15, y + 6, 6, 6);
 
-            // Đôi mắt màu đỏ ruby
             ctx.fillStyle = '#d60036';
             ctx.fillRect(x + 10, y + 8, 4, 6);
             ctx.fillRect(x + 22, y + 8, 4, 6);
 
-            // Điểm sáng trong mắt
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(x + 11, y + 9, 2, 2);
             ctx.fillRect(x + 23, y + 9, 2, 2);
 
-            // Bánh mì Pháp (Baguette) cài bên vai
+            // Bánh mì Pháp (Baguette)
             ctx.fillStyle = '#d48b38';
             ctx.fillRect(x + 26, y + 16, 8, 14);
             ctx.fillStyle = '#f0b067';
             ctx.fillRect(x + 28, y + 18, 4, 10);
 
-            // --- 4. CHÂN & TẤT ĐÙI (Legs & Boots) ---
-            // Đùi
+            // --- 4. CHÂN & TẤT ĐÙI ---
             ctx.fillStyle = '#ffe0cb';
             ctx.fillRect(x + 10, y + 38, 6, 4);
             ctx.fillRect(x + 20, y + 38, 6, 4);
 
-            // Tất đùi đen (Over-knee socks) & Giày
             ctx.fillStyle = '#18181c';
             ctx.fillRect(x + 10, y + 40, 6, 12);
             ctx.fillRect(x + 20, y + 40, 6, 12);
 
-            // Đế giày màu đỏ
             ctx.fillStyle = '#ff0044';
             ctx.fillRect(x + 9, y + 50, 8, 2);
             ctx.fillRect(x + 19, y + 50, 8, 2);
@@ -491,37 +570,6 @@
         }
     }
 
-    // Vẽ Miku
-    function drawMiku() {
-        const hairWave = Math.sin(frameCount * 0.2) * 4;
-
-        ctx.fillStyle = miku.color;
-        ctx.fillRect(miku.x - 10, miku.y + 6 + hairWave, 10, 32);
-        ctx.fillRect(miku.x + miku.width, miku.y + 6 - hairWave, 10, 32);
-
-        ctx.fillStyle = "#222";
-        ctx.fillRect(miku.x + 8, miku.y + 20, 20, 18);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(miku.x + 10, miku.y + 20, 16, 10);
-
-        ctx.fillStyle = miku.color;
-        ctx.fillRect(miku.x + 16, miku.y + 22, 4, 12);
-
-        ctx.fillStyle = "#ffdca8";
-        ctx.fillRect(miku.x + 6, miku.y + 2, 24, 18);
-
-        ctx.fillStyle = miku.color;
-        ctx.fillRect(miku.x + 4, miku.y, 28, 7);
-
-        ctx.fillStyle = "#008b8b";
-        ctx.fillRect(miku.x + 11, miku.y + 8, 4, 6);
-        ctx.fillRect(miku.x + 21, miku.y + 8, 4, 6);
-
-        ctx.fillStyle = "#111";
-        ctx.fillRect(miku.x + 10, miku.y + 38, 6, 14);
-        ctx.fillRect(miku.x + 20, miku.y + 38, 6, 14);
-    }
-
     // Vẽ MrBeast
     function drawMrBeast() {
         ctx.fillStyle = "#2b70c9";
@@ -594,7 +642,7 @@
         if (!miku.isJumping) {
             miku.velocityY = miku.jumpPower;
             miku.isJumping = true;
-            play16BitJumpSound();
+            play32BitJumpSound();
         }
     }
 
@@ -710,7 +758,7 @@
             }
 
             drawMrBeast();
-            drawMiku();
+            miku.draw();
 
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 16px Arial';
@@ -724,7 +772,7 @@
 
         } else if (!isGameRunning && !isGameOver && !isGameWon) {
             drawMrBeast();
-            drawMiku();
+            miku.draw();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ff4060';
@@ -734,7 +782,7 @@
             ctx.textAlign = 'left';
         } else if (isGameWon) {
             drawMrBeast();
-            drawMiku();
+            miku.draw();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffea00';
@@ -747,7 +795,7 @@
             ctx.textAlign = 'left';
         } else if (isGameOver) {
             drawMrBeast();
-            drawMiku();
+            miku.draw();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ff4060';
